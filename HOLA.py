@@ -7,8 +7,8 @@ st.title("¡Bienvenido a MangiAI!")
 MODELOS = ['llama-3.1-8b-instant', 'llama-3.3-70b-versatile', 'deepseek-r1-distill-llama-70b']
 
 def configurar_pagina():
-    st.sidebar.title("Configuración de la IA")
-    elegirModelo = st.sidebar.selectbox("Elegí un modelo:", options=MODELOS, index=0)
+    st.sidebar.title("Configuración personalizada")
+    elegirModelo = st.sidebar.selectbox("Elige un modelo:", options=MODELOS, index=0)
     return elegirModelo
 
 def crear_usuario_groq():
@@ -54,6 +54,7 @@ if mensaje:
 
 
 area_chat()
+
 
 
 
