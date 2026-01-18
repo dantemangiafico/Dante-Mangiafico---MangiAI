@@ -71,7 +71,7 @@ modelo = configurar_pagina()
 
 mostrar_historial()
 
-mensaje_usuario = st.chat_input("Escribí tu mensaje...")
+mensaje_usuario = st.chat_input("Escribe tu mensaje...")
 
 if mensaje_usuario:
     actualizar_historial("user", mensaje_usuario, "🤔")
@@ -81,3 +81,4 @@ if mensaje_usuario:
 
     actualizar_historial("assistant", respuesta, "🤖")
     st.rerun()
+
