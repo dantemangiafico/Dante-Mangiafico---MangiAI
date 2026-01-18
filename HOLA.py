@@ -47,13 +47,14 @@ modelo = configurar_pagina()
 mensaje = st.chat_input("Escribí tu mensaje:")
 
 if mensaje:
-    actualizar_historial("user", mensaje, "😁")
+    actualizar_historial("user", mensaje, "🤔")
     respuesta = configurar_modelo(clienteUsuario, modelo, mensaje)
     actualizar_historial("assistant", respuesta, "🤖")
     st.rerun()
 
 
 area_chat()
+
 
 
 
