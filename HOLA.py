@@ -3,8 +3,14 @@ from groq import Groq
 from datetime import datetime
 import base64
 
-st.set_page_config(page_title="MangiAI", page_icon="🤖")
+# -------------------- CONFIG PÁGINA --------------------
+st.set_page_config(
+    page_title="MangiAI",
+    page_icon="🤖",
+    layout="centered"
+)
 
+# -------------------- LOGO FIXED PREMIUM --------------------
 def cargar_logo_base64(path):
     with open(path, "rb") as f:
         return base64.b64encode(f.read()).decode()
@@ -16,12 +22,22 @@ st.markdown(
     <style>
     .logo-fixed {{
         position: fixed;
-        top: 18px;
-        right: 18px;
-        width: 90px;
-        opacity: 0.9;
-        z-index: 1000;
+        top: 16px;
+        right: 16px;
+        width: 130px;
+        opacity: 0.95;
+        z-index: 999;
         pointer-events: none;
+        filter: drop-shadow(0 6px 18px rgba(0,0,0,0.35));
+    }}
+
+    /* Mobile */
+    @media (max-width: 768px) {{
+        .logo-fixed {{
+            width: 95px;
+            top: 12px;
+            right: 12px;
+        }}
     }}
     </style>
 
@@ -30,23 +46,23 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+# -------------------- HEADER --------------------
 st.title("🤖 ¡Bienvenido a MangiAI!")
 st.caption("Tu asistente, a otro nivel. Siempre.")
 
+# -------------------- MODELOS --------------------
 MODELOS = [
     "llama-3.1-8b-instant",
     "llama-3.3-70b-versatile",
     "deepseek-r1-distill-llama-70b"
 ]
 
+# -------------------- CONTEXTO ACTUAL --------------------
 def obtener_contexto_actual():
     ahora = datetime.now()
-    fecha = ahora.strftime("%d/%m/%Y")
-    hora = ahora.strftime("%H:%M")
-
     return (
-        f"Fecha actual: {fecha}. "
-        f"Hora actual: {hora}. "
+        f"Fecha actual: {ahora.strftime('%d/%m/%Y')}. "
+        f"Hora actual: {ahora.strftime('%H:%M')}. "
         "Respondé teniendo en cuenta que esta información es actual."
     )
 
@@ -58,6 +74,7 @@ SYSTEM_PROMPT_BASE = (
     "Si pide ideas, sos creativo pero realista."
 )
 
+# -------------------- SIDEBAR --------------------
 def configurar_pagina():
     st.sidebar.title("⚙️ Configuración")
     modelo = st.sidebar.selectbox("Elegí un modelo:", MODELOS)
@@ -68,9 +85,11 @@ def configurar_pagina():
 
     return modelo
 
+# -------------------- GROQ CLIENT --------------------
 def crear_cliente_groq():
     return Groq(api_key=st.secrets["CLAVE_API"])
 
+# -------------------- ESTADO --------------------
 def inicializar_estado():
     if "mensajes" not in st.session_state:
         st.session_state.mensajes = []
@@ -87,12 +106,11 @@ def mostrar_historial():
         with st.chat_message(mensaje["role"], avatar=mensaje["avatar"]):
             st.markdown(mensaje["content"])
 
+# -------------------- RESPUESTA IA --------------------
 def generar_respuesta(cliente, modelo):
-    contexto_actual = obtener_contexto_actual()
-
     system_prompt = {
         "role": "system",
-        "content": SYSTEM_PROMPT_BASE + " " + contexto_actual
+        "content": SYSTEM_PROMPT_BASE + " " + obtener_contexto_actual()
     }
 
     mensajes = [system_prompt] + [
@@ -102,12 +120,12 @@ def generar_respuesta(cliente, modelo):
 
     respuesta = cliente.chat.completions.create(
         model=modelo,
-        messages=mensajes,
-        stream=False
+        messages=mensajes
     )
 
     return respuesta.choices[0].message.content
 
+# -------------------- APP --------------------
 inicializar_estado()
 cliente = crear_cliente_groq()
 modelo = configurar_pagina()
@@ -122,6 +140,6 @@ if mensaje_usuario:
     with st.spinner("MangiAI está pensando..."):
         respuesta = generar_respuesta(cliente, modelo)
 
-    actualizar_historial("assistant", respuesta, "logomangi.png")
+    # 👇 AVATAR CORRECTO (NO LOGO)
+    actualizar_historial("assistant", respuesta, "🤖")
     st.rerun()
-
