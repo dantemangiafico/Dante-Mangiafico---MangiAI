@@ -3,7 +3,7 @@ from groq import Groq
 from datetime import datetime
 
 st.set_page_config(page_title="MangiAI", page_icon="🤖")
-st.title("🤖 MangiAI")
+st.title("🤖 ¡Bienvenido a MangiAI!")
 st.caption("Tu asistente, a otro nivel. Siempre.")
 
 MODELOS = [
@@ -97,4 +97,5 @@ if mensaje_usuario:
 
     actualizar_historial("assistant", respuesta, "🤖")
     st.rerun()
+
 
