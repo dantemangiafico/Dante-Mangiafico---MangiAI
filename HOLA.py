@@ -1,5 +1,6 @@
 import streamlit as st
 from groq import Groq
+from datetime import datetime
 
 st.set_page_config(page_title="MangiAI", page_icon="🤖")
 st.title("🤖 MangiAI")
@@ -11,16 +12,24 @@ MODELOS = [
     "deepseek-r1-distill-llama-70b"
 ]
 
-SYSTEM_PROMPT = {
-    "role": "system",
-    "content": (
-        "Sos MangiAI, una IA moderna, clara y profesional. "
-        "Recordás todo el contexto de la conversación. "
-        "Respondés de forma ordenada y útil. "
-        "Si el usuario pide código, explicás paso a paso. "
-        "Si pide ideas, sos creativo pero realista."
+def obtener_contexto_actual():
+    ahora = datetime.now()
+    fecha = ahora.strftime("%d/%m/%Y")
+    hora = ahora.strftime("%H:%M")
+
+    return (
+        f"Fecha actual: {fecha}. "
+        f"Hora actual: {hora}. "
+        "Respondé teniendo en cuenta que esta información es actual."
     )
-}
+
+SYSTEM_PROMPT_BASE = (
+    "Sos MangiAI, una IA moderna, clara y profesional. "
+    "Recordás todo el contexto de la conversación. "
+    "Respondés de forma ordenada y útil. "
+    "Si el usuario pide código, explicás paso a paso. "
+    "Si pide ideas, sos creativo pero realista."
+)
 
 def configurar_pagina():
     st.sidebar.title("⚙️ Configuración")
@@ -52,7 +61,14 @@ def mostrar_historial():
             st.markdown(mensaje["content"])
 
 def generar_respuesta(cliente, modelo):
-    mensajes = [SYSTEM_PROMPT] + [
+    contexto_actual = obtener_contexto_actual()
+
+    system_prompt = {
+        "role": "system",
+        "content": SYSTEM_PROMPT_BASE + " " + contexto_actual
+    }
+
+    mensajes = [system_prompt] + [
         {"role": m["role"], "content": m["content"]}
         for m in st.session_state.mensajes
     ]
@@ -81,6 +97,4 @@ if mensaje_usuario:
 
     actualizar_historial("assistant", respuesta, "🤖")
     st.rerun()
-
-
 
