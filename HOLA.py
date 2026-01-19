@@ -77,7 +77,7 @@ SYSTEM_PROMPT_BASE = (
 # -------------------- SIDEBAR --------------------
 def configurar_pagina():
     st.sidebar.title("⚙️ Configuración")
-    modelo = st.sidebar.selectbox("Elegí un modelo:", MODELOS)
+    modelo = st.sidebar.selectbox("Elige un modelo:", MODELOS)
 
     if st.sidebar.button("🧹 Limpiar conversación"):
         st.session_state.mensajes = []
@@ -143,3 +143,4 @@ if mensaje_usuario:
     # 👇 AVATAR CORRECTO (NO LOGO)
     actualizar_historial("assistant", respuesta, "🤖")
     st.rerun()
+
