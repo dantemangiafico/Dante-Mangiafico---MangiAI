@@ -79,7 +79,20 @@ st.markdown(
         opacity: 0.7;
     }}
 
-    /* -------- COPY BUTTON -------- */
+    /* -------- CHAT -------- */
+    .chat-wrapper {{
+        position: relative;
+        padding-top: 6px;
+    }}
+
+    .style-badge {{
+        position: absolute;
+        top: 6px;
+        left: 6px;
+        font-size: 0.85rem;
+        opacity: 0.85;
+    }}
+
     .copy-btn {{
         position: absolute;
         top: 6px;
@@ -96,10 +109,6 @@ st.markdown(
     .copy-btn:hover {{
         opacity: 1;
         background: rgba(0,255,170,0.2);
-    }}
-
-    .chat-wrapper {{
-        position: relative;
     }}
     </style>
 
@@ -119,7 +128,7 @@ MODELOS = [
     "deepseek-r1-distill-llama-70b"
 ]
 
-# -------------------- ESTILOS RESPUESTA --------------------
+# -------------------- ESTILOS --------------------
 ESTILOS = {
     "⚡ Directo": "Respondé de forma breve, clara y sin rodeos.",
     "📖 Explicativo": "Respondé paso a paso, con contexto y ejemplos claros.",
@@ -185,20 +194,22 @@ def inicializar_estado():
     if "mensajes" not in st.session_state:
         st.session_state.mensajes = []
 
-def actualizar_historial(rol, contenido, avatar):
+def actualizar_historial(rol, contenido, avatar, estilo=None):
     st.session_state.mensajes.append({
         "id": str(uuid.uuid4()),
         "role": rol,
         "content": contenido,
-        "avatar": avatar
+        "avatar": avatar,
+        "estilo": estilo
     })
 
 def mostrar_historial():
     for mensaje in st.session_state.mensajes:
         if mensaje["role"] == "assistant":
-            uid = mensaje["id"]
+            emoji = AVATARES.get(mensaje["estilo"], "🤖")
             st.markdown(f"""
             <div class="chat-wrapper">
+                <div class="style-badge">{emoji}</div>
                 <button class="copy-btn" onclick="navigator.clipboard.writeText(`{mensaje['content']}`)">📋</button>
                 <div>{mensaje['content']}</div>
             </div>
@@ -249,10 +260,14 @@ if mensaje_usuario:
     with st.spinner("Analizando..."):
         respuesta = generar_respuesta(cliente, modelo)
 
-    avatar = AVATARES.get(st.session_state.estilo_respuesta, "🤖")
-    actualizar_historial("assistant", respuesta, avatar)
+    estilo_actual = st.session_state.estilo_respuesta
+    avatar = AVATARES.get(estilo_actual, "🤖")
+
+    actualizar_historial(
+        "assistant",
+        respuesta,
+        avatar,
+        estilo=estilo_actual
+    )
 
     st.rerun()
-
-
-
