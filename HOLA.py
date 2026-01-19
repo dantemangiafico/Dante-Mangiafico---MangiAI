@@ -40,7 +40,7 @@ st.markdown(
         }}
     }}
 
-    /* -------- BOTONES SIDEBAR -------- */
+    /* -------- SIDEBAR BUTTONS -------- */
     div[data-testid="stSidebar"] button {{
         background: rgba(255,255,255,0.02);
         border: 1px solid rgba(0,255,170,0.25);
@@ -82,21 +82,27 @@ st.markdown(
     /* -------- CHAT -------- */
     .chat-wrapper {{
         position: relative;
-        padding-top: 6px;
+        padding: 14px;
+        padding-top: 38px;
+        border-radius: 12px;
+    }}
+
+    .chat-header {{
+        position: absolute;
+        top: 6px;
+        left: 8px;
+        right: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }}
 
     .style-badge {{
-        position: absolute;
-        top: 6px;
-        left: 6px;
-        font-size: 0.85rem;
+        font-size: 0.9rem;
         opacity: 0.85;
     }}
 
     .copy-btn {{
-        position: absolute;
-        top: 6px;
-        right: 6px;
         font-size: 0.75rem;
         background: rgba(255,255,255,0.08);
         border: none;
@@ -209,8 +215,13 @@ def mostrar_historial():
             emoji = AVATARES.get(mensaje["estilo"], "🤖")
             st.markdown(f"""
             <div class="chat-wrapper">
-                <div class="style-badge">{emoji}</div>
-                <button class="copy-btn" onclick="navigator.clipboard.writeText(`{mensaje['content']}`)">📋</button>
+                <div class="chat-header">
+                    <div class="style-badge">{emoji}</div>
+                    <button class="copy-btn"
+                        onclick="navigator.clipboard.writeText(`{mensaje['content']}`)">
+                        📋
+                    </button>
+                </div>
                 <div>{mensaje['content']}</div>
             </div>
             """, unsafe_allow_html=True)
