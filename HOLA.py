@@ -205,7 +205,7 @@ if len(st.session_state.mensajes) == 0:
     st.markdown("""
         <div class="empty-state">
             <div class="empty-title">¿En qué te ayudo hoy?</div>
-            <div class="empty-subtitle">Elegí un estilo o escribí tu consulta</div>
+            <div class="empty-subtitle">Elige un estilo o escribe tu consulta</div>
         </div>
     """, unsafe_allow_html=True)
 else:
@@ -223,3 +223,4 @@ if mensaje_usuario:
     actualizar_historial("assistant", respuesta, avatar)
 
     st.rerun()
+
