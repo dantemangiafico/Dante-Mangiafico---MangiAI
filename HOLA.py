@@ -2,6 +2,7 @@ import streamlit as st
 from groq import Groq
 from datetime import datetime
 import base64
+import uuid
 
 # -------------------- CONFIG PÁGINA --------------------
 st.set_page_config(
@@ -39,28 +40,21 @@ st.markdown(
         }}
     }}
 
-    /* -------- BOTONES ESTILO RESPUESTA -------- */
+    /* -------- BOTONES SIDEBAR -------- */
     div[data-testid="stSidebar"] button {{
-        background: transparent;
-        border: 1px solid rgba(0, 255, 170, 0.25);
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(0,255,170,0.25);
         color: #eaeaea;
-        border-radius: 10px;
-        padding: 10px 12px;
+        border-radius: 12px;
+        padding: 10px 14px;
         margin-bottom: 8px;
         transition: all 0.15s ease;
         text-align: left;
     }}
 
     div[data-testid="stSidebar"] button:hover {{
-        background: rgba(0, 255, 170, 0.15);
-        color: #ffffff;
+        background: rgba(0,255,170,0.15);
         transform: translateY(-1px);
-    }}
-
-    div[data-testid="stSidebar"] button:focus {{
-        background: #00ffaa;
-        color: #002b24;
-        font-weight: 600;
     }}
 
     /* -------- EMPTY STATE -------- */
@@ -83,6 +77,29 @@ st.markdown(
     .empty-subtitle {{
         font-size: 1.05rem;
         opacity: 0.7;
+    }}
+
+    /* -------- COPY BUTTON -------- */
+    .copy-btn {{
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        font-size: 0.75rem;
+        background: rgba(255,255,255,0.08);
+        border: none;
+        border-radius: 6px;
+        padding: 4px 6px;
+        cursor: pointer;
+        opacity: 0.7;
+    }}
+
+    .copy-btn:hover {{
+        opacity: 1;
+        background: rgba(0,255,170,0.2);
+    }}
+
+    .chat-wrapper {{
+        position: relative;
     }}
     </style>
 
@@ -107,28 +124,32 @@ ESTILOS = {
     "⚡ Directo": "Respondé de forma breve, clara y sin rodeos.",
     "📖 Explicativo": "Respondé paso a paso, con contexto y ejemplos claros.",
     "🎯 Estratégico": "Respondé analizando opciones, pros y contras, y recomendando.",
-    "🧑‍💼 Formal": "Respondé con tono profesional, estructurado y neutral."
+    "🧑‍💼 Formal": "Respondé con tono profesional, estructurado y neutral.",
+    "💻 Código": (
+        "Respondé como un programador senior. "
+        "Priorizá código limpio y optimizado. "
+        "Usá bloques de código correctamente. "
+        "No expliques salvo que el usuario lo pida."
+    )
 }
 
 AVATARES = {
     "⚡ Directo": "⚡",
     "📖 Explicativo": "📖",
     "🎯 Estratégico": "🎯",
-    "🧑‍💼 Formal": "🧑‍💼"
+    "🧑‍💼 Formal": "🧑‍💼",
+    "💻 Código": "💻"
 }
 
 # -------------------- CONTEXTO --------------------
 def obtener_contexto_actual():
     ahora = datetime.now()
-    return (
-        f"Fecha actual: {ahora.strftime('%d/%m/%Y')}. "
-        f"Hora actual: {ahora.strftime('%H:%M')}."
-    )
+    return f"Fecha: {ahora.strftime('%d/%m/%Y')} | Hora: {ahora.strftime('%H:%M')}"
 
 def construir_system_prompt():
     estilo = st.session_state.get("estilo_respuesta", "⚡ Directo")
     return (
-        "Sos MangiAI, una IA moderna, clara y profesional creada por Dante Mangiafico. "
+        "Sos MangiAI, una IA moderna y profesional creada por Dante Mangiafico. "
         "Recordás el contexto de la conversación. "
         f"{ESTILOS[estilo]} "
         + obtener_contexto_actual()
@@ -166,6 +187,7 @@ def inicializar_estado():
 
 def actualizar_historial(rol, contenido, avatar):
     st.session_state.mensajes.append({
+        "id": str(uuid.uuid4()),
         "role": rol,
         "content": contenido,
         "avatar": avatar
@@ -173,8 +195,17 @@ def actualizar_historial(rol, contenido, avatar):
 
 def mostrar_historial():
     for mensaje in st.session_state.mensajes:
-        with st.chat_message(mensaje["role"], avatar=mensaje["avatar"]):
-            st.markdown(mensaje["content"])
+        if mensaje["role"] == "assistant":
+            uid = mensaje["id"]
+            st.markdown(f"""
+            <div class="chat-wrapper">
+                <button class="copy-btn" onclick="navigator.clipboard.writeText(`{mensaje['content']}`)">📋</button>
+                <div>{mensaje['content']}</div>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            with st.chat_message("user", avatar=mensaje["avatar"]):
+                st.markdown(mensaje["content"])
 
 # -------------------- RESPUESTA IA --------------------
 def generar_respuesta(cliente, modelo):
@@ -200,12 +231,11 @@ inicializar_estado()
 cliente = crear_cliente_groq()
 modelo = configurar_pagina()
 
-# 👉 MENSAJE CENTRAL (SOLO SI NO HAY CONVERSACIÓN)
 if len(st.session_state.mensajes) == 0:
     st.markdown("""
         <div class="empty-state">
             <div class="empty-title">¿En qué te ayudo hoy?</div>
-            <div class="empty-subtitle">Elige un estilo o escribe tu consulta</div>
+            <div class="empty-subtitle">Elegí un estilo o escribí tu consulta</div>
         </div>
     """, unsafe_allow_html=True)
 else:
@@ -223,4 +253,6 @@ if mensaje_usuario:
     actualizar_historial("assistant", respuesta, avatar)
 
     st.rerun()
+
+
 
