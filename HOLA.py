@@ -34,9 +34,22 @@ st.markdown(
                      'Segoe UI', sans-serif !important;
     }}
 
-    /* -------- OCULTAR SIDEBAR ARROW -------- */
+    /* -------- OCULTAR SIDEBAR COLLAPSE BUTTON Y TEXTO -------- */
     button[data-testid="collapsedControl"],
-    button[data-testid="stSidebarCollapseButton"] {{
+    button[data-testid="stSidebarCollapseButton"],
+    [data-testid="collapsedControl"],
+    section[data-testid="stSidebar"] > div:first-child > button {{
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        width: 0 !important;
+        height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }}
+
+    /* -------- OCULTAR CUALQUIER TEXTO EN TOP LEFT -------- */
+    .css-1v0mbdj {{
         display: none !important;
     }}
 
