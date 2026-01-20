@@ -8,7 +8,7 @@ import html
 # -------------------- CONFIG PÁGINA --------------------
 st.set_page_config(
     page_title="MangiAI",
-    page_icon="logopersonaje.png",
+    page_icon="logopersonaje.png",  # Chrome usa este archivo (ideal >= 512x512)
     layout="centered"
 )
 
@@ -39,7 +39,7 @@ st.markdown(
         margin: 0;
     }}
 
-    /* -------- SIDEBAR ARROW -------- */
+    /* -------- SIDEBAR BUTTON -------- */
     button[data-testid="collapsedControl"],
     button[data-testid="stSidebarCollapseButton"] {{
         position: fixed !important;
@@ -53,14 +53,13 @@ st.markdown(
         box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3) !important;
     }}
 
-    button[data-testid="collapsedControl"] svg,
-    button[data-testid="stSidebarCollapseButton"] svg {{
+    button[data-testid="collapsedControl"] svg {{
         color: #00ffaa !important;
         width: 1.2rem !important;
         height: 1.2rem !important;
     }}
 
-    /* -------- LOGO FIXED (TOP RIGHT) -------- */
+    /* -------- LOGO FIJO (TOP RIGHT) -------- */
     .logo-fixed {{
         position: fixed;
         top: 16px;
@@ -76,17 +75,17 @@ st.markdown(
     .header-logo {{
         display: flex;
         align-items: center;
-        gap: 18px;
-        margin-bottom: 4px;
+        gap: 20px;
+        margin-bottom: 6px;
     }}
 
     .header-logo img {{
-        width: 72px;
-        height: 72px;
+        width: 96px;
+        height: 96px;
     }}
 
     .header-logo h1 {{
-        font-size: 2.4rem;
+        font-size: 2.6rem;
         line-height: 1.1;
     }}
 
@@ -127,6 +126,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 st.caption("Tu asistente inteligente, elevado al siguiente nivel. Siempre.")
 
 # -------------------- MODELOS --------------------
@@ -200,15 +200,6 @@ def inicializar_estado():
     if "mensajes" not in st.session_state:
         st.session_state.mensajes = []
 
-def actualizar_historial(rol, contenido, avatar, estilo=None):
-    st.session_state.mensajes.append({
-        "id": str(uuid.uuid4()),
-        "role": rol,
-        "content": contenido,
-        "avatar": avatar,
-        "estilo": estilo
-    })
-
 # -------------------- APP --------------------
 inicializar_estado()
 cliente = crear_cliente_groq()
@@ -223,14 +214,3 @@ if not st.session_state.mensajes:
     """, unsafe_allow_html=True)
 
 mensaje_usuario = st.chat_input("Escribí tu mensaje...")
-
-if mensaje_usuario:
-    actualizar_historial("user", mensaje_usuario, "🤔")
-    with st.spinner("Analizando..."):
-        respuesta = generar_respuesta(cliente, modelo)
-
-    estilo_actual = st.session_state.estilo_respuesta
-    avatar = AVATARES.get(estilo_actual, ("🤖", ""))[0]
-
-    actualizar_historial("assistant", respuesta, avatar, estilo=estilo_actual)
-    st.rerun()
