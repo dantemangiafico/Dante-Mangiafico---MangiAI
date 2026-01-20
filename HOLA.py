@@ -34,20 +34,33 @@ st.markdown(
                      'Segoe UI', sans-serif !important;
     }}
 
-    /* -------- OCULTAR SIDEBAR COLLAPSE BUTTON -------- */
+    /* -------- SIDEBAR ARROW (TOP LEFT) -------- */
     button[data-testid="collapsedControl"],
     button[data-testid="stSidebarCollapseButton"] {{
-        display: none !important;
-        visibility: hidden !important;
+        position: fixed !important;
+        top: 14px !important;
+        left: 14px !important;
+        z-index: 9999 !important;
+        background: rgba(0, 255, 170, 0.15) !important;
+        border-radius: 10px !important;
+        padding: 8px 10px !important;
+        border: 1px solid rgba(0, 255, 170, 0.4) !important;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3) !important;
+        transition: all 0.2s ease !important;
     }}
 
-    /* -------- OCULTAR TEXTO KEYBOARD -------- */
-    header {{
-        display: none !important;
+    button[data-testid="collapsedControl"]:hover,
+    button[data-testid="stSidebarCollapseButton"]:hover {{
+        background: rgba(0, 255, 170, 0.3) !important;
+        transform: scale(1.05) !important;
+        border-color: rgba(0, 255, 170, 0.6) !important;
     }}
-    
-    .css-18ni7ap, .css-1dp5vir {{
-        display: none !important;
+
+    button[data-testid="collapsedControl"] svg,
+    button[data-testid="stSidebarCollapseButton"] svg {{
+        color: #00ffaa !important;
+        width: 1.2rem !important;
+        height: 1.2rem !important;
     }}
 
     /* -------- LOGO -------- */
@@ -166,35 +179,6 @@ st.markdown(
         font-weight: 400;
     }}
     </style>
-
-    <script>
-    // Remover el texto keyboard y elementos no deseados
-    function removeKeyboardText() {{
-        const headers = document.querySelectorAll('header');
-        headers.forEach(h => h.remove());
-        
-        const buttons = document.querySelectorAll('[data-testid="collapsedControl"], [data-testid="stSidebarCollapseButton"]');
-        buttons.forEach(b => b.remove());
-        
-        // Buscar y eliminar cualquier elemento que contenga "keyboard"
-        const allElements = document.querySelectorAll('*');
-        allElements.forEach(el => {{
-            if (el.textContent.trim().toLowerCase() === 'keyboard') {{
-                el.remove();
-            }}
-        }});
-    }}
-    
-    // Ejecutar cuando el DOM esté listo
-    if (document.readyState === 'loading') {{
-        document.addEventListener('DOMContentLoaded', removeKeyboardText);
-    }} else {{
-        removeKeyboardText();
-    }}
-    
-    // También ejecutar periódicamente por si acaso
-    setInterval(removeKeyboardText, 100);
-    </script>
 
     <img src="data:image/png;base64,{logo_base64}" class="logo-fixed">
     """,
