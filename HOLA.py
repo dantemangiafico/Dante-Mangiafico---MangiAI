@@ -34,25 +34,33 @@ st.markdown(
                      'Segoe UI', sans-serif !important;
     }}
 
-    /* -------- SIDEBAR ARROW FIX (TOP LEFT) -------- */
+    /* -------- SIDEBAR ARROW (TOP LEFT) -------- */
     button[data-testid="collapsedControl"],
     button[data-testid="stSidebarCollapseButton"] {{
         position: fixed !important;
         top: 14px !important;
         left: 14px !important;
         z-index: 9999 !important;
-
-        background: rgba(255,255,255,0.08) !important;
+        background: rgba(0, 255, 170, 0.15) !important;
         border-radius: 10px !important;
-        padding: 6px 8px !important;
-        border: 1px solid rgba(0,255,170,0.35) !important;
-        box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+        padding: 8px 10px !important;
+        border: 1px solid rgba(0, 255, 170, 0.4) !important;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3) !important;
+        transition: all 0.2s ease !important;
     }}
 
     button[data-testid="collapsedControl"]:hover,
     button[data-testid="stSidebarCollapseButton"]:hover {{
-        background: rgba(0,255,170,0.25) !important;
-        transform: scale(1.05);
+        background: rgba(0, 255, 170, 0.3) !important;
+        transform: scale(1.05) !important;
+        border-color: rgba(0, 255, 170, 0.6) !important;
+    }}
+
+    button[data-testid="collapsedControl"] svg,
+    button[data-testid="stSidebarCollapseButton"] svg {{
+        color: #00ffaa !important;
+        width: 1.2rem !important;
+        height: 1.2rem !important;
     }}
 
     /* -------- LOGO -------- */
