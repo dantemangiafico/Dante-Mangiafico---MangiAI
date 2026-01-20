@@ -34,6 +34,11 @@ st.markdown(
                      'Segoe UI', sans-serif !important;
     }}
 
+    /* -------- TITULO EN NEGRITA -------- */
+    h1 {{
+        font-weight: 900 !important;
+    }}
+
     /* -------- SIDEBAR ARROW (TOP LEFT) -------- */
     button[data-testid="collapsedControl"],
     button[data-testid="stSidebarCollapseButton"] {{
