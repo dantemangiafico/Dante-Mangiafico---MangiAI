@@ -8,7 +8,7 @@ import html
 # -------------------- CONFIG PÁGINA --------------------
 st.set_page_config(
     page_title="MangiAI",
-    page_icon="logomangi.png",
+    page_icon="logopersonaje.png",
     layout="centered"
 )
 
@@ -346,6 +346,7 @@ if mensaje_usuario:
     )
 
     st.rerun()
+
 
 
 
