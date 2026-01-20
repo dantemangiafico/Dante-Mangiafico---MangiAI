@@ -36,8 +36,10 @@ st.markdown(
 
     h1 {{
         font-weight: 900 !important;
+        margin: 0;
     }}
 
+    /* -------- SIDEBAR ARROW -------- */
     button[data-testid="collapsedControl"],
     button[data-testid="stSidebarCollapseButton"] {{
         position: fixed !important;
@@ -49,7 +51,6 @@ st.markdown(
         padding: 8px 10px !important;
         border: 1px solid rgba(0, 255, 170, 0.4) !important;
         box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3) !important;
-        transition: all 0.2s ease !important;
     }}
 
     button[data-testid="collapsedControl"] svg,
@@ -59,6 +60,7 @@ st.markdown(
         height: 1.2rem !important;
     }}
 
+    /* -------- LOGO FIXED (TOP RIGHT) -------- */
     .logo-fixed {{
         position: fixed;
         top: 16px;
@@ -70,18 +72,25 @@ st.markdown(
         filter: drop-shadow(0 6px 18px rgba(0,0,0,0.35));
     }}
 
+    /* -------- HEADER -------- */
     .header-logo {{
         display: flex;
         align-items: center;
-        gap: 14px;
-        margin-bottom: 6px;
+        gap: 18px;
+        margin-bottom: 4px;
     }}
 
     .header-logo img {{
-        width: 48px;
-        height: 48px;
+        width: 72px;
+        height: 72px;
     }}
 
+    .header-logo h1 {{
+        font-size: 2.4rem;
+        line-height: 1.1;
+    }}
+
+    /* -------- EMPTY STATE -------- */
     .empty-state {{
         display: flex;
         flex-direction: column;
@@ -200,38 +209,6 @@ def actualizar_historial(rol, contenido, avatar, estilo=None):
         "estilo": estilo
     })
 
-def mostrar_historial():
-    for mensaje in st.session_state.mensajes:
-        if mensaje["role"] == "assistant":
-            emoji, nombre = AVATARES.get(mensaje["estilo"], ("🤖", "MangiAI"))
-            texto_seguro = html.escape(mensaje["content"])
-
-            st.markdown(f"""
-            <div class="chat-wrapper">
-                <div class="chat-header">
-                    <div class="style-badge">{emoji} {nombre}</div>
-                </div>
-                <div class="chat-message">{texto_seguro}</div>
-            </div>
-            """, unsafe_allow_html=True)
-        else:
-            with st.chat_message("user", avatar=mensaje["avatar"]):
-                st.markdown(mensaje["content"])
-
-# -------------------- RESPUESTA IA --------------------
-def generar_respuesta(cliente, modelo):
-    mensajes = [{"role": "system", "content": construir_system_prompt()}] + [
-        {"role": m["role"], "content": m["content"]}
-        for m in st.session_state.mensajes
-    ]
-
-    respuesta = cliente.chat.completions.create(
-        model=modelo,
-        messages=mensajes
-    )
-
-    return respuesta.choices[0].message.content
-
 # -------------------- APP --------------------
 inicializar_estado()
 cliente = crear_cliente_groq()
@@ -244,25 +221,16 @@ if not st.session_state.mensajes:
             <div class="empty-subtitle">Elegí un estilo o escribí tu consulta</div>
         </div>
     """, unsafe_allow_html=True)
-else:
-    mostrar_historial()
 
 mensaje_usuario = st.chat_input("Escribí tu mensaje...")
 
 if mensaje_usuario:
     actualizar_historial("user", mensaje_usuario, "🤔")
-
     with st.spinner("Analizando..."):
         respuesta = generar_respuesta(cliente, modelo)
 
     estilo_actual = st.session_state.estilo_respuesta
     avatar = AVATARES.get(estilo_actual, ("🤖", ""))[0]
 
-    actualizar_historial(
-        "assistant",
-        respuesta,
-        avatar,
-        estilo=estilo_actual
-    )
-
+    actualizar_historial("assistant", respuesta, avatar, estilo=estilo_actual)
     st.rerun()
