@@ -3,7 +3,7 @@ from groq import Groq
 from datetime import datetime
 import base64
 import uuid
-import html   # 🔒 FIX DEFINITIVO
+import html  # 🔒 FIX DEFINITIVO
 
 # -------------------- CONFIG PÁGINA --------------------
 st.set_page_config(
@@ -21,7 +21,20 @@ logo_base64 = cargar_logo_base64("logomangi.png")
 
 st.markdown(
     f"""
+    <!-- GOOGLE FONT -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
     <style>
+    /* -------- FONT GLOBAL -------- */
+    html, body, [class*="st-"], div, span, p, h1, h2, h3, h4, h5, h6, 
+    button, input, textarea {{
+        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont,
+                     'Segoe UI', sans-serif !important;
+    }}
+
+    /* -------- LOGO -------- */
     .logo-fixed {{
         position: fixed;
         top: 16px;
@@ -51,6 +64,7 @@ st.markdown(
         margin-bottom: 8px;
         transition: all 0.15s ease;
         text-align: left;
+        font-weight: 500;
     }}
 
     div[data-testid="stSidebar"] button:hover {{
@@ -66,18 +80,20 @@ st.markdown(
         justify-content: center;
         height: 55vh;
         text-align: center;
-        opacity: 0.9;
+        opacity: 0.95;
     }}
 
     .empty-title {{
-        font-size: 2.3rem;
-        font-weight: 700;
+        font-size: 2.4rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
         margin-bottom: 0.3rem;
     }}
 
     .empty-subtitle {{
         font-size: 1.05rem;
-        opacity: 0.7;
+        font-weight: 400;
+        opacity: 0.75;
     }}
 
     /* -------- CHAT -------- */
@@ -119,14 +135,14 @@ st.markdown(
         background: rgba(0,255,170,0.2);
     }}
 
-    /* -------- FIX DEFINITIVO TEXTO -------- */
     .chat-message {{
         max-width: 100%;
         white-space: pre-wrap;
         word-wrap: break-word;
         overflow-wrap: break-word;
-        line-height: 1.6;
+        line-height: 1.65;
         font-size: 1rem;
+        font-weight: 400;
     }}
     </style>
 
@@ -185,15 +201,14 @@ def construir_system_prompt():
 # -------------------- SIDEBAR --------------------
 def configurar_pagina():
     st.sidebar.title("⚙️ Configuración")
-
-    modelo = st.sidebar.selectbox("Elige un modelo:", MODELOS)
+    modelo = st.sidebar.selectbox("Elegí un modelo:", MODELOS)
 
     st.sidebar.markdown("### 💬 Estilo de respuesta")
 
     if "estilo_respuesta" not in st.session_state:
         st.session_state.estilo_respuesta = "⚡ Directo"
 
-    for estilo in ESTILOS.keys():
+    for estilo in ESTILOS:
         if st.sidebar.button(estilo, use_container_width=True):
             st.session_state.estilo_respuesta = estilo
 
@@ -241,7 +256,6 @@ def mostrar_historial():
                 </div>
             </div>
             """, unsafe_allow_html=True)
-
         else:
             with st.chat_message("user", avatar=mensaje["avatar"]):
                 st.markdown(mensaje["content"])
@@ -270,7 +284,7 @@ inicializar_estado()
 cliente = crear_cliente_groq()
 modelo = configurar_pagina()
 
-if len(st.session_state.mensajes) == 0:
+if not st.session_state.mensajes:
     st.markdown("""
         <div class="empty-state">
             <div class="empty-title">¿En qué te ayudo hoy?</div>
@@ -280,7 +294,7 @@ if len(st.session_state.mensajes) == 0:
 else:
     mostrar_historial()
 
-mensaje_usuario = st.chat_input("Escribe tu mensaje...")
+mensaje_usuario = st.chat_input("Escribí tu mensaje...")
 
 if mensaje_usuario:
     actualizar_historial("user", mensaje_usuario, "🤔")
@@ -299,4 +313,3 @@ if mensaje_usuario:
     )
 
     st.rerun()
-
