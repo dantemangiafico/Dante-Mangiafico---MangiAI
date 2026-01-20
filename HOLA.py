@@ -34,20 +34,24 @@ st.markdown(
                      'Segoe UI', sans-serif !important;
     }}
 
-    /* -------- SIDEBAR ARROW FIX -------- */
-    button[data-testid="collapsedControl"] {{
-        position: fixed;
-        top: 14px;
-        left: 14px;
-        z-index: 1000;
-        background: rgba(255,255,255,0.08);
-        border-radius: 10px;
-        padding: 6px 8px;
-        border: 1px solid rgba(0,255,170,0.35);
+    /* -------- SIDEBAR ARROW FIX (TOP LEFT) -------- */
+    button[data-testid="collapsedControl"],
+    button[data-testid="stSidebarCollapseButton"] {{
+        position: fixed !important;
+        top: 14px !important;
+        left: 14px !important;
+        z-index: 9999 !important;
+
+        background: rgba(255,255,255,0.08) !important;
+        border-radius: 10px !important;
+        padding: 6px 8px !important;
+        border: 1px solid rgba(0,255,170,0.35) !important;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.25);
     }}
 
-    button[data-testid="collapsedControl"]:hover {{
-        background: rgba(0,255,170,0.25);
+    button[data-testid="collapsedControl"]:hover,
+    button[data-testid="stSidebarCollapseButton"]:hover {{
+        background: rgba(0,255,170,0.25) !important;
         transform: scale(1.05);
     }}
 
@@ -329,4 +333,3 @@ if mensaje_usuario:
     )
 
     st.rerun()
-
