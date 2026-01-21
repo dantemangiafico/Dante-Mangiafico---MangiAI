@@ -18,14 +18,14 @@ def cargar_logo_base64(path):
         return base64.b64encode(f.read()).decode()
 
 logo_fijo_base64 = cargar_logo_base64("logomangi.png")
-logo_header_base64 = cargar_logo_base64("logodefinitivo2.png")
+logo_definitivo_base64 = cargar_logo_base64("logodefinitivo2.png")
 
 # -------------------- ESTILOS GLOBALES --------------------
 st.markdown(
     f"""
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
     html, body, [class*="st-"], div, span, p, h1, h2, h3, h4, h5, h6,
@@ -50,32 +50,33 @@ st.markdown(
         filter: drop-shadow(0 6px 18px rgba(0,0,0,0.35));
     }}
 
-    /* -------- HEADER VERTICAL -------- */
-    .header-wrapper {{
+    /* -------- HEADER -------- */
+    .header-logo {{
         display: flex;
         flex-direction: column;
         align-items: center;
+        gap: 14px;
+        margin-top: 32px;
+        margin-bottom: 42px;
         text-align: center;
-        margin-top: 30px;
-        margin-bottom: 22px;
     }}
 
     .header-logo img {{
-        width: 145px;   /* 🔥 logo más grande */
-        height: 145px;
-        margin-bottom: 14px;
+        width: 118px;
+        height: 118px;
     }}
 
-    .header-title {{
-        font-size: 2.8rem;
-        line-height: 1.1;
+    .header-logo h1 {{
+        font-size: 2.9rem;
         font-weight: 900;
+        letter-spacing: -0.02em;
+        line-height: 1.15;
     }}
 
     .header-subtitle {{
-        margin-top: 6px;
         font-size: 1.05rem;
         opacity: 0.75;
+        margin-top: -6px;
     }}
 
     /* -------- EMPTY STATE -------- */
@@ -108,11 +109,9 @@ st.markdown(
 # -------------------- HEADER --------------------
 st.markdown(
     f"""
-    <div class="header-wrapper">
-        <div class="header-logo">
-            <img src="data:image/png;base64,{logo_header_base64}">
-        </div>
-        <div class="header-title">¡Bienvenido a MangiAI!</div>
+    <div class="header-logo">
+        <img src="data:image/png;base64,{logo_definitivo_base64}">
+        <h1>¡Bienvenido a MangiAI!</h1>
         <div class="header-subtitle">
             Tu asistente inteligente, elevado al siguiente nivel. Siempre.
         </div>
@@ -230,15 +229,12 @@ cliente = crear_cliente_groq()
 modelo = configurar_sidebar()
 
 if not st.session_state.mensajes:
-    st.markdown(
-        """
+    st.markdown("""
         <div class="empty-state">
             <div class="empty-title">¿En qué te ayudo hoy?</div>
             <div class="empty-subtitle">Elegí un estilo o escribí tu consulta</div>
         </div>
-        """,
-        unsafe_allow_html=True
-    )
+    """, unsafe_allow_html=True)
 else:
     mostrar_historial()
 
