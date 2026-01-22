@@ -69,14 +69,47 @@ st.markdown(
         }}
     }}
 
-    @keyframes fadeIn {{
+    @keyframes fadeInUp {{
         from {{
             opacity: 0;
-            transform: translateY(20px);
+            transform: translateY(40px) scale(0.95);
+        }}
+        to {{
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }}
+    }}
+
+    @keyframes fadeOutDown {{
+        from {{
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }}
+        to {{
+            opacity: 0;
+            transform: translateY(-60px) scale(0.9);
+        }}
+    }}
+
+    @keyframes slideInFromBottom {{
+        from {{
+            opacity: 0;
+            transform: translateY(100px);
         }}
         to {{
             opacity: 1;
             transform: translateY(0);
+        }}
+    }}
+
+    @keyframes zoomIn {{
+        from {{
+            opacity: 0;
+            transform: scale(0.8);
+        }}
+        to {{
+            opacity: 1;
+            transform: scale(1);
         }}
     }}
 
@@ -88,14 +121,14 @@ st.markdown(
         justify-content: center;
         height: 80vh;
         text-align: center;
-        animation: fadeIn 0.8s ease-out;
+        animation: fadeInUp 1s cubic-bezier(0.34, 1.56, 0.64, 1);
     }}
 
     .welcome-screen img {{
         width: 140px;
         height: 140px;
         margin-bottom: 32px;
-        animation: flotar 3s ease-in-out infinite, brillo 3s ease-in-out infinite;
+        animation: flotar 3s ease-in-out infinite, brillo 3s ease-in-out infinite, zoomIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
     }}
 
     .welcome-screen h1 {{
@@ -104,6 +137,7 @@ st.markdown(
         letter-spacing: -0.02em;
         line-height: 1.15;
         margin-bottom: 16px;
+        animation: fadeInUp 1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s backwards;
     }}
 
     .welcome-subtitle {{
@@ -111,6 +145,7 @@ st.markdown(
         opacity: 0.75;
         margin-bottom: 48px;
         max-width: 500px;
+        animation: fadeInUp 1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.4s backwards;
     }}
 
     /* -------- BOTÓN DE INICIO -------- */
@@ -126,10 +161,11 @@ st.markdown(
         transition: all 0.3s ease !important;
         box-shadow: 0 4px 12px rgba(34, 197, 94, 0.25) !important;
         width: auto !important;
+        animation: zoomIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.6s backwards !important;
     }}
 
     div[data-testid="stButton"] button:hover {{
-        transform: translateY(-2px) !important;
+        transform: translateY(-2px) scale(1.05) !important;
         box-shadow: 0 8px 20px rgba(34, 197, 94, 0.35) !important;
     }}
 
@@ -142,13 +178,13 @@ st.markdown(
         margin-top: 32px;
         margin-bottom: 42px;
         text-align: center;
-        animation: fadeIn 0.6s ease-out;
+        animation: slideInFromBottom 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
     }}
 
     .header-logo img {{
         width: 118px;
         height: 118px;
-        animation: flotar 3s ease-in-out infinite, brillo 3s ease-in-out infinite;
+        animation: flotar 3s ease-in-out infinite, brillo 3s ease-in-out infinite, zoomIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
     }}
 
     .header-logo h1 {{
@@ -156,12 +192,14 @@ st.markdown(
         font-weight: 900;
         letter-spacing: -0.02em;
         line-height: 1.15;
+        animation: fadeInUp 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s backwards;
     }}
 
     .header-subtitle {{
         font-size: 1.05rem;
         opacity: 0.75;
         margin-top: -6px;
+        animation: fadeInUp 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s backwards;
     }}
 
     /* -------- EMPTY STATE -------- */
@@ -173,17 +211,19 @@ st.markdown(
         height: 55vh;
         text-align: center;
         opacity: 0.95;
-        animation: fadeIn 0.6s ease-out;
+        animation: fadeInUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s backwards;
     }}
 
     .empty-title {{
         font-size: 2.35rem;
         font-weight: 800;
+        animation: zoomIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.4s backwards;
     }}
 
     .empty-subtitle {{
         font-size: 1.05rem;
         opacity: 0.75;
+        animation: fadeInUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s backwards;
     }}
 
     /* -------- BOTONES DE ESTILO UNIFORMES -------- */
