@@ -419,6 +419,34 @@ def generar_imagen(prompt):
         st.error(f"Error: {str(e)}")
         return None
 
+def mejorar_prompt(prompt_basico, cliente, modelo):
+    """Mejora un prompt básico convirtiéndolo en uno detallado para generación de imágenes"""
+    system_prompt = """Sos un experto en crear prompts para generación de imágenes con IA. 
+Tu trabajo es tomar descripciones simples y convertirlas en prompts detallados, profesionales y efectivos.
+
+Incluí detalles sobre:
+- Estilo visual (fotorrealista, artístico, cartoon, etc.)
+- Iluminación y atmósfera
+- Colores y paleta
+- Composición y ángulo
+- Calidad (8k, alta definición, etc.)
+- Texturas y detalles específicos
+
+Respondé SOLO con el prompt mejorado, sin explicaciones adicionales."""
+
+    try:
+        respuesta = cliente.chat.completions.create(
+            model=modelo,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": f"Mejorá este prompt para generar una imagen: {prompt_basico}"}
+            ]
+        )
+        return respuesta.choices[0].message.content.strip()
+    except Exception as e:
+        st.error(f"Error al mejorar prompt: {str(e)}")
+        return prompt_basico
+
 # ==================== APLICACIÓN PRINCIPAL ====================
 inicializar_estado()
 cliente = Groq(api_key=st.secrets["CLAVE_API"])
@@ -429,24 +457,50 @@ if st.session_state.get("mostrar_generador", False):
     st.markdown("---")
     st.markdown("## 🎨 Generador de Imágenes")
     
+    # Inicializar estado del prompt si no existe
+    if "prompt_mejorado" not in st.session_state:
+        st.session_state.prompt_mejorado = ""
+    
     prompt_imagen = st.text_area(
         "Describe la imagen que querés crear:",
-        placeholder="Ej: Un gato astronauta flotando en el espacio con nebulosas de colores...",
+        value=st.session_state.prompt_mejorado if st.session_state.prompt_mejorado else "",
+        placeholder="Ej: Un gato astronauta en el espacio...",
         height=120,
         key="prompt_img"
     )
     
+    col_enhance, col_space = st.columns([2, 3])
+    
+    with col_enhance:
+        if st.button("✨ Mejorar Prompt con IA", use_container_width=True, key="btn_enhance"):
+            if prompt_imagen:
+                with st.spinner("🔮 Mejorando tu prompt..."):
+                    prompt_mejorado = mejorar_prompt(prompt_imagen, cliente, modelo)
+                    st.session_state.prompt_mejorado = prompt_mejorado
+                    st.success("¡Prompt mejorado!")
+                    st.rerun()
+            else:
+                st.warning("Escribí algo primero para mejorar")
+    
+    # Mostrar el prompt mejorado si existe
+    if st.session_state.prompt_mejorado and st.session_state.prompt_mejorado != prompt_imagen:
+        with st.expander("📝 Ver prompt mejorado", expanded=True):
+            st.info(st.session_state.prompt_mejorado)
+    
     col1, col2, col3 = st.columns([2, 2, 1])
     
     with col1:
-        if st.button("✨ Generar Imagen", use_container_width=True, key="btn_gen", type="primary"):
-            if prompt_imagen:
+        if st.button("🎨 Generar Imagen", use_container_width=True, key="btn_gen", type="primary"):
+            prompt_final = prompt_imagen if prompt_imagen else ""
+            if prompt_final:
                 with st.spinner("🎨 Creando tu imagen..."):
                     try:
-                        imagen_url = generar_imagen(prompt_imagen)
+                        imagen_url = generar_imagen(prompt_final)
                         if imagen_url:
-                            st.image(imagen_url, caption=prompt_imagen, use_column_width=True)
+                            st.image(imagen_url, caption=prompt_final, use_column_width=True)
                             st.success("¡Imagen generada con éxito!")
+                            # Limpiar prompt mejorado después de generar
+                            st.session_state.prompt_mejorado = ""
                     except Exception as e:
                         st.error(f"Error: {str(e)}")
             else:
@@ -455,6 +509,7 @@ if st.session_state.get("mostrar_generador", False):
     with col2:
         if st.button("❌ Cerrar Generador", use_container_width=True, key="btn_close"):
             st.session_state.mostrar_generador = False
+            st.session_state.prompt_mejorado = ""
             st.rerun()
     
     st.markdown("---")
