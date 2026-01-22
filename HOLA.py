@@ -50,7 +50,7 @@ st.markdown(
         filter: drop-shadow(0 6px 18px rgba(0,0,0,0.35));
     }}
 
-    /* -------- ANIMACIÓN LOGO PRINCIPAL -------- */
+    /* -------- ANIMACIONES -------- */
     @keyframes flotar {{
         0%, 100% {{
             transform: translateY(0px);
@@ -69,7 +69,71 @@ st.markdown(
         }}
     }}
 
-    /* -------- HEADER -------- */
+    @keyframes fadeIn {{
+        from {{
+            opacity: 0;
+            transform: translateY(20px);
+        }}
+        to {{
+            opacity: 1;
+            transform: translateY(0);
+        }}
+    }}
+
+    /* -------- PANTALLA DE BIENVENIDA -------- */
+    .welcome-screen {{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 80vh;
+        text-align: center;
+        animation: fadeIn 0.8s ease-out;
+    }}
+
+    .welcome-screen img {{
+        width: 140px;
+        height: 140px;
+        margin-bottom: 32px;
+        animation: flotar 3s ease-in-out infinite, brillo 3s ease-in-out infinite;
+    }}
+
+    .welcome-screen h1 {{
+        font-size: 3.2rem;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        line-height: 1.15;
+        margin-bottom: 16px;
+    }}
+
+    .welcome-subtitle {{
+        font-size: 1.15rem;
+        opacity: 0.75;
+        margin-bottom: 48px;
+        max-width: 500px;
+    }}
+
+    /* -------- BOTÓN DE INICIO -------- */
+    div[data-testid="stButton"] button {{
+        background: linear-gradient(135deg, rgb(34, 197, 94) 0%, rgb(16, 185, 129) 100%) !important;
+        color: white !important;
+        padding: 16px 48px !important;
+        font-size: 1.1rem !important;
+        font-weight: 600 !important;
+        border: none !important;
+        border-radius: 12px !important;
+        cursor: pointer !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 12px rgba(34, 197, 94, 0.25) !important;
+        width: auto !important;
+    }}
+
+    div[data-testid="stButton"] button:hover {{
+        transform: translateY(-2px) !important;
+        box-shadow: 0 8px 20px rgba(34, 197, 94, 0.35) !important;
+    }}
+
+    /* -------- HEADER CHAT -------- */
     .header-logo {{
         display: flex;
         flex-direction: column;
@@ -78,6 +142,7 @@ st.markdown(
         margin-top: 32px;
         margin-bottom: 42px;
         text-align: center;
+        animation: fadeIn 0.6s ease-out;
     }}
 
     .header-logo img {{
@@ -108,6 +173,7 @@ st.markdown(
         height: 55vh;
         text-align: center;
         opacity: 0.95;
+        animation: fadeIn 0.6s ease-out;
     }}
 
     .empty-title {{
@@ -122,20 +188,6 @@ st.markdown(
     </style>
 
     <img src="data:image/png;base64,{logo_fijo_base64}" class="logo-fixed">
-    """,
-    unsafe_allow_html=True
-)
-
-# -------------------- HEADER --------------------
-st.markdown(
-    f"""
-    <div class="header-logo">
-        <img src="data:image/png;base64,{logo_definitivo_base64}">
-        <h1>¡Bienvenido a MangiAI!</h1>
-        <div class="header-subtitle">
-            Tu asistente inteligente, elevado al siguiente nivel. Siempre.
-        </div>
-    </div>
     """,
     unsafe_allow_html=True
 )
@@ -192,6 +244,7 @@ def configurar_sidebar():
 
     if st.sidebar.button("🧹 Limpiar conversación"):
         st.session_state.mensajes = []
+        st.session_state.mostrar_bienvenida = True
         st.rerun()
 
     return modelo
@@ -199,6 +252,8 @@ def configurar_sidebar():
 def inicializar_estado():
     if "mensajes" not in st.session_state:
         st.session_state.mensajes = []
+    if "mostrar_bienvenida" not in st.session_state:
+        st.session_state.mostrar_bienvenida = True
 
 def actualizar_historial(rol, contenido, avatar, estilo=None):
     st.session_state.mensajes.append({
@@ -237,27 +292,63 @@ inicializar_estado()
 cliente = Groq(api_key=st.secrets["CLAVE_API"])
 modelo = configurar_sidebar()
 
-if not st.session_state.mensajes:
-    st.markdown("""
-        <div class="empty-state">
-            <div class="empty-title">¿En qué te ayudo hoy?</div>
-            <div class="empty-subtitle">Elegí un estilo o escribí tu consulta</div>
+# -------------------- PANTALLA DE BIENVENIDA --------------------
+if st.session_state.mostrar_bienvenida:
+    st.markdown(
+        f"""
+        <div class="welcome-screen">
+            <img src="data:image/png;base64,{logo_definitivo_base64}">
+            <h1>¡Bienvenido a MangiAI!</h1>
+            <div class="welcome-subtitle">
+                Tu asistente inteligente, elevado al siguiente nivel. Siempre.
+            </div>
         </div>
-    """, unsafe_allow_html=True)
+        """,
+        unsafe_allow_html=True
+    )
+    
+    col1, col2, col3 = st.columns([1, 1, 1])
+    with col2:
+        if st.button("Comenzar ✨", use_container_width=True):
+            st.session_state.mostrar_bienvenida = False
+            st.rerun()
+
+# -------------------- PANTALLA DE CHAT --------------------
 else:
-    mostrar_historial()
+    st.markdown(
+        f"""
+        <div class="header-logo">
+            <img src="data:image/png;base64,{logo_definitivo_base64}">
+            <h1>¡Bienvenido a MangiAI!</h1>
+            <div class="header-subtitle">
+                Tu asistente inteligente, elevado al siguiente nivel. Siempre.
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
-mensaje_usuario = st.chat_input("Escribí tu mensaje...")
+    if not st.session_state.mensajes:
+        st.markdown("""
+            <div class="empty-state">
+                <div class="empty-title">¿En qué te ayudo hoy?</div>
+                <div class="empty-subtitle">Elegí un estilo o escribí tu consulta</div>
+            </div>
+        """, unsafe_allow_html=True)
+    else:
+        mostrar_historial()
 
-if mensaje_usuario:
-    actualizar_historial("user", mensaje_usuario, "🤔")
+    mensaje_usuario = st.chat_input("Escribí tu mensaje...")
 
-    with st.spinner("Analizando..."):
-        respuesta = generar_respuesta(cliente, modelo)
+    if mensaje_usuario:
+        actualizar_historial("user", mensaje_usuario, "🤔")
 
-    estilo_actual = st.session_state.estilo_respuesta
-    avatar = AVATARES[estilo_actual][0]
+        with st.spinner("Analizando..."):
+            respuesta = generar_respuesta(cliente, modelo)
 
-    actualizar_historial("assistant", respuesta, avatar, estilo=estilo_actual)
+        estilo_actual = st.session_state.estilo_respuesta
+        avatar = AVATARES[estilo_actual][0]
 
-    st.rerun()
+        actualizar_historial("assistant", respuesta, avatar, estilo=estilo_actual)
+
+        st.rerun()
