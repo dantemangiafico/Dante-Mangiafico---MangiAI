@@ -62,10 +62,10 @@ st.markdown(
 
     @keyframes brillo {{
         0%, 100% {{
-            filter: drop-shadow(0 0 8px rgba(147, 51, 234, 0.3));
+            filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.3));
         }}
         50% {{
-            filter: drop-shadow(0 0 20px rgba(147, 51, 234, 0.6));
+            filter: drop-shadow(0 0 20px rgba(34, 197, 94, 0.6));
         }}
     }}
 
