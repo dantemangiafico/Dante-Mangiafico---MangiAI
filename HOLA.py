@@ -55,6 +55,14 @@ st.markdown(
         z-index: 9999;
         animation: fadeOut 0.8s ease-out 2.5s forwards;
     }}
+    
+    /* Ocultar todo el contenido mientras carga */
+    body:has(.loading-overlay) .main,
+    body:has(.loading-overlay) [data-testid="stAppViewContainer"] > section,
+    body:has(.loading-overlay) .stApp > header {{
+        opacity: 0 !important;
+        visibility: hidden !important;
+    }}
 
     @keyframes fadeOut {{
         to {{
@@ -674,6 +682,8 @@ PROCOLAB_SYSTEM_PROMPT = """Sos Pedro, una IA experta en consultoría empresaria
 - Análisis de datos y KPIs empresariales
 - Proyectos y gestión de cambio organizacional
 - Marketing estratégico y posicionamiento
+- Ciencia de datos y Machine Learing
+- Sistemas de Información de las Organizaciones
 
 🎨 TU METODOLOGÍA ÚNICA "PROCOLAB":
 
@@ -1074,6 +1084,17 @@ inicializar_estado()
 
 # ==================== PANTALLA DE CARGA INICIAL ====================
 if not st.session_state.app_cargada:
+    # Ocultar todo mientras carga
+    st.markdown("""
+        <style>
+        .main > div:not(:has(.loading-overlay)),
+        [data-testid="stSidebar"],
+        header[data-testid="stHeader"] {
+            display: none !important;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+    
     st.markdown(
         f"""
         <div class="loading-overlay">
@@ -1092,12 +1113,6 @@ if not st.session_state.app_cargada:
                 <div class="loading-bar-fill"></div>
             </div>
         </div>
-        
-        <script>
-            setTimeout(function() {{
-                window.parent.postMessage({{type: 'streamlit:setComponentValue', value: true}}, '*');
-            }}, 3000);
-        </script>
         """,
         unsafe_allow_html=True
     )
@@ -1215,4 +1230,3 @@ else:
         actualizar_historial("assistant", respuesta, avatar, estilo=estilo_actual)
 
         st.rerun()
-
