@@ -295,6 +295,19 @@ st.markdown(
         padding: 0 16px !important;
     }}
 
+    /* -------- OCULTAR SCROLLBAR -------- */
+    .main, [data-testid="stAppViewContainer"], section[data-testid="stMainBlockContainer"] {{
+        overflow-y: auto !important;
+        scrollbar-width: none !important; /* Firefox */
+        -ms-overflow-style: none !important; /* IE/Edge */
+    }}
+
+    .main::-webkit-scrollbar, 
+    [data-testid="stAppViewContainer"]::-webkit-scrollbar,
+    section[data-testid="stMainBlockContainer"]::-webkit-scrollbar {{
+        display: none !important; /* Chrome/Safari */
+    }}
+
     /* -------- PARTÍCULAS FLOTANTES INPUT -------- */
     .stChatInput {{
         position: relative !important;
