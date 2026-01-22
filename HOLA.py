@@ -113,12 +113,59 @@ st.markdown(
         }}
     }}
 
-    @keyframes glowPulse {{
-        0%, 100% {{
-            box-shadow: 0 0 5px rgba(34, 197, 94, 0.2), 0 0 10px rgba(34, 197, 94, 0.1);
+    @keyframes particula1 {{
+        0% {{
+            transform: translate(0, 0) scale(0);
+            opacity: 0;
         }}
         50% {{
-            box-shadow: 0 0 15px rgba(34, 197, 94, 0.4), 0 0 25px rgba(34, 197, 94, 0.2), 0 0 35px rgba(34, 197, 94, 0.1);
+            opacity: 0.6;
+        }}
+        100% {{
+            transform: translate(-30px, -40px) scale(1);
+            opacity: 0;
+        }}
+    }}
+
+    @keyframes particula2 {{
+        0% {{
+            transform: translate(0, 0) scale(0);
+            opacity: 0;
+        }}
+        50% {{
+            opacity: 0.6;
+        }}
+        100% {{
+            transform: translate(30px, -45px) scale(1);
+            opacity: 0;
+        }}
+    }}
+
+    @keyframes particula3 {{
+        0% {{
+            transform: translate(0, 0) scale(0);
+            opacity: 0;
+        }}
+        50% {{
+            opacity: 0.6;
+        }}
+        100% {{
+            transform: translate(-15px, -50px) scale(1);
+            opacity: 0;
+        }}
+    }}
+
+    @keyframes particula4 {{
+        0% {{
+            transform: translate(0, 0) scale(0);
+            opacity: 0;
+        }}
+        50% {{
+            opacity: 0.6;
+        }}
+        100% {{
+            transform: translate(25px, -35px) scale(1);
+            opacity: 0;
         }}
     }}
 
@@ -248,16 +295,61 @@ st.markdown(
         padding: 0 16px !important;
     }}
 
-    /* -------- ANIMACIÓN INPUT CHAT -------- */
-    .stChatInput textarea {{
-        animation: glowPulse 3s ease-in-out infinite !important;
-        border-radius: 12px !important;
-        transition: all 0.3s ease !important;
+    /* -------- PARTÍCULAS FLOTANTES INPUT -------- */
+    .stChatInput {{
+        position: relative !important;
     }}
 
-    .stChatInput textarea:focus {{
-        box-shadow: 0 0 20px rgba(34, 197, 94, 0.5), 0 0 35px rgba(34, 197, 94, 0.3) !important;
-        border-color: rgb(34, 197, 94) !important;
+    .stChatInput::before,
+    .stChatInput::after {{
+        content: '' !important;
+        position: absolute !important;
+        width: 6px !important;
+        height: 6px !important;
+        background: rgb(34, 197, 94) !important;
+        border-radius: 50% !important;
+        pointer-events: none !important;
+        z-index: 1 !important;
+    }}
+
+    .stChatInput::before {{
+        bottom: 20px !important;
+        left: 10% !important;
+        animation: particula1 3s ease-in-out infinite !important;
+    }}
+
+    .stChatInput::after {{
+        bottom: 20px !important;
+        right: 10% !important;
+        animation: particula2 3s ease-in-out infinite 0.5s !important;
+    }}
+
+    @keyframes particula5 {{
+        0% {{
+            transform: translate(0, 0) scale(0);
+            opacity: 0;
+        }}
+        50% {{
+            opacity: 0.5;
+        }}
+        100% {{
+            transform: translate(0, -55px) scale(1);
+            opacity: 0;
+        }}
+    }}
+
+    @keyframes particula6 {{
+        0% {{
+            transform: translate(0, 0) scale(0);
+            opacity: 0;
+        }}
+        50% {{
+            opacity: 0.5;
+        }}
+        100% {{
+            transform: translate(-40px, -30px) scale(1);
+            opacity: 0;
+        }}
     }}
     </style>
 
