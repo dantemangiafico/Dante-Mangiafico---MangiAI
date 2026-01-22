@@ -460,34 +460,13 @@ def configurar_sidebar():
             st.session_state.estilo_respuesta = estilo
 
     st.sidebar.markdown("---")
+    st.sidebar.markdown("### 🎨 Herramientas")
     
-    # Botón de generación de imágenes
-    st.sidebar.markdown("""
-        <style>
-        .imagen-btn {
-            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 10px;
-            text-align: center;
-            font-weight: 600;
-            font-size: 1rem;
-            margin: 10px 0;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.25);
-        }
-        .imagen-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(139, 92, 246, 0.35);
-        }
-        </style>
-    """, unsafe_allow_html=True)
-    
-    if st.sidebar.button("🎨 Generar Imagen", use_container_width=True, key="gen_img"):
+    if st.sidebar.button("🎨 Generar Imagen", use_container_width=True, key="gen_img", type="secondary"):
         st.session_state.mostrar_generador = True
+        st.rerun()
 
-    if st.sidebar.button("🧹 Limpiar conversación"):
+    if st.sidebar.button("🧹 Limpiar conversación", use_container_width=True):
         st.session_state.mensajes = []
         st.session_state.mostrar_bienvenida = True
         st.rerun()
