@@ -346,7 +346,7 @@ def configurar_sidebar():
     st.sidebar.markdown("---")
     st.sidebar.markdown("### 🎨 Herramientas")
     
-    if st.sidebar.button("🎨 Generar Imagen", use_container_width=True, key="gen_img", type="secondary"):
+    if st.sidebar.button("✨ Mejorar Prompts", use_container_width=True, key="gen_img", type="secondary"):
         st.session_state.mostrar_generador = True
         st.rerun()
 
@@ -455,7 +455,7 @@ modelo = configurar_sidebar()
 # ==================== GENERADOR DE IMÁGENES ====================
 if st.session_state.get("mostrar_generador", False):
     st.markdown("---")
-    st.markdown("## 🎨 Generador de Imágenes")
+    st.markdown("## ✨ Mejorador de Prompts")
     
     # Inicializar estado del prompt si no existe
     if "prompt_mejorado" not in st.session_state:
@@ -463,54 +463,37 @@ if st.session_state.get("mostrar_generador", False):
     
     prompt_imagen = st.text_area(
         "Describe la imagen que querés crear:",
-        value=st.session_state.prompt_mejorado if st.session_state.prompt_mejorado else "",
         placeholder="Ej: Un gato astronauta en el espacio...",
-        height=120,
+        height=100,
         key="prompt_img"
     )
     
-    col_enhance, col_space = st.columns([2, 3])
+    col1, col2 = st.columns([2, 2])
     
-    with col_enhance:
-        if st.button("✨ Mejorar Prompt con IA", use_container_width=True, key="btn_enhance"):
+    with col1:
+        if st.button("✨ Mejorar Prompt con IA", use_container_width=True, key="btn_enhance", type="primary"):
             if prompt_imagen:
                 with st.spinner("🔮 Mejorando tu prompt..."):
                     prompt_mejorado = mejorar_prompt(prompt_imagen, cliente, modelo)
                     st.session_state.prompt_mejorado = prompt_mejorado
-                    st.success("¡Prompt mejorado!")
                     st.rerun()
             else:
                 st.warning("Escribí algo primero para mejorar")
     
-    # Mostrar el prompt mejorado si existe
-    if st.session_state.prompt_mejorado and st.session_state.prompt_mejorado != prompt_imagen:
-        with st.expander("📝 Ver prompt mejorado", expanded=True):
-            st.info(st.session_state.prompt_mejorado)
-    
-    col1, col2, col3 = st.columns([2, 2, 1])
-    
-    with col1:
-        if st.button("🎨 Generar Imagen", use_container_width=True, key="btn_gen", type="primary"):
-            prompt_final = prompt_imagen if prompt_imagen else ""
-            if prompt_final:
-                with st.spinner("🎨 Creando tu imagen..."):
-                    try:
-                        imagen_url = generar_imagen(prompt_final)
-                        if imagen_url:
-                            st.image(imagen_url, caption=prompt_final, use_column_width=True)
-                            st.success("¡Imagen generada con éxito!")
-                            # Limpiar prompt mejorado después de generar
-                            st.session_state.prompt_mejorado = ""
-                    except Exception as e:
-                        st.error(f"Error: {str(e)}")
-            else:
-                st.warning("Por favor, describe la imagen")
-    
     with col2:
-        if st.button("❌ Cerrar Generador", use_container_width=True, key="btn_close"):
+        if st.button("❌ Cerrar", use_container_width=True, key="btn_close"):
             st.session_state.mostrar_generador = False
             st.session_state.prompt_mejorado = ""
             st.rerun()
+    
+    # Mostrar el prompt mejorado directamente si existe
+    if st.session_state.prompt_mejorado:
+        st.markdown("### 📝 Prompt Mejorado:")
+        st.info(st.session_state.prompt_mejorado)
+        
+        # Botón para copiar
+        if st.button("📋 Copiar Prompt", use_container_width=False):
+            st.success("¡Copiá el texto de arriba!")
     
     st.markdown("---")
 
