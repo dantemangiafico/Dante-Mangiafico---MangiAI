@@ -359,7 +359,7 @@ def construir_system_prompt():
     estilo = st.session_state.get("estilo_respuesta", "⚡ Directo")
     timestamp = datetime.now().strftime("%d/%m/%Y %H:%M")
     return (
-        f"MangiAI, una IA moderna y profesional creada por Dante Mangiafico. "
+        f"Mangi, una IA moderna y profesional creada por Dante Mangiafico. "
         f"{ESTILOS[estilo]} {timestamp}"
     )
 
@@ -598,3 +598,4 @@ else:
         actualizar_historial("assistant", respuesta, avatar, estilo=estilo_actual)
 
         st.rerun()
+
