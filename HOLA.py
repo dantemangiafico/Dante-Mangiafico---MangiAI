@@ -378,7 +378,7 @@ def configurar_sidebar():
             st.session_state.estilo_respuesta = estilo
 
     st.sidebar.markdown("---")
-    st.sidebar.markdown("### 🎨 Herramientas")
+    st.sidebar.markdown("### 🛠️ Herramientas")
     
     if st.sidebar.button("🧠 Prompt Genius", use_container_width=True, key="gen_img", type="secondary"):
         st.session_state.mostrar_generador = True
@@ -598,4 +598,5 @@ else:
         actualizar_historial("assistant", respuesta, avatar, estilo=estilo_actual)
 
         st.rerun()
+
 
