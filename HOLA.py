@@ -4,6 +4,7 @@ from datetime import datetime
 import base64
 import uuid
 import html
+import replicate
 
 # -------------------- CONFIG PÁGINA --------------------
 st.set_page_config(
@@ -458,6 +459,34 @@ def configurar_sidebar():
         if st.sidebar.button(estilo, use_container_width=True):
             st.session_state.estilo_respuesta = estilo
 
+    st.sidebar.markdown("---")
+    
+    # Botón de generación de imágenes
+    st.sidebar.markdown("""
+        <style>
+        .imagen-btn {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1rem;
+            margin: 10px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.25);
+        }
+        .imagen-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(139, 92, 246, 0.35);
+        }
+        </style>
+    """, unsafe_allow_html=True)
+    
+    if st.sidebar.button("🎨 Generar Imagen", use_container_width=True, key="gen_img"):
+        st.session_state.mostrar_generador = True
+
     if st.sidebar.button("🧹 Limpiar conversación"):
         st.session_state.mensajes = []
         st.session_state.mostrar_bienvenida = True
@@ -470,6 +499,8 @@ def inicializar_estado():
         st.session_state.mensajes = []
     if "mostrar_bienvenida" not in st.session_state:
         st.session_state.mostrar_bienvenida = True
+    if "mostrar_generador" not in st.session_state:
+        st.session_state.mostrar_generador = False
 
 def actualizar_historial(rol, contenido, avatar, estilo=None):
     st.session_state.mensajes.append({
@@ -503,10 +534,108 @@ def generar_respuesta(cliente, modelo):
 
     return respuesta.choices[0].message.content
 
+def generar_imagen(prompt):
+    """Genera una imagen usando Replicate"""
+    import replicate
+    
+    output = replicate.run(
+        "black-forest-labs/flux-schnell",
+        input={"prompt": prompt}
+    )
+    
+    return output[0] if output else None
+
 # -------------------- APP PRINCIPAL --------------------
 inicializar_estado()
 cliente = Groq(api_key=st.secrets["CLAVE_API"])
 modelo = configurar_sidebar()
+
+# -------------------- MODAL GENERADOR DE IMÁGENES --------------------
+if st.session_state.get("mostrar_generador", False):
+    st.markdown("""
+        <style>
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            z-index: 9998;
+            animation: fadeIn 0.3s ease-out;
+        }
+        .modal-content {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(139, 92, 246, 0.3);
+            border-radius: 20px;
+            padding: 40px;
+            z-index: 9999;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(139, 92, 246, 0.3);
+            animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -40%);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+        }
+        .modal-title {
+            font-size: 2rem;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        </style>
+        <div class="modal-overlay"></div>
+    """, unsafe_allow_html=True)
+    
+    with st.container():
+        st.markdown('<div class="modal-content">', unsafe_allow_html=True)
+        st.markdown('<div class="modal-title">🎨 Generar Imagen</div>', unsafe_allow_html=True)
+        
+        prompt_imagen = st.text_area(
+            "Describe la imagen que querés crear:",
+            placeholder="Ej: Un gato astronauta flotando en el espacio con nebulosas de colores...",
+            height=120
+        )
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if st.button("✨ Generar", use_container_width=True):
+                if prompt_imagen:
+                    with st.spinner("🎨 Creando tu imagen..."):
+                        try:
+                            imagen_url = generar_imagen(prompt_imagen)
+                            if imagen_url:
+                                st.image(imagen_url, caption=prompt_imagen)
+                                st.success("¡Imagen generada con éxito!")
+                        except Exception as e:
+                            st.error(f"Error al generar imagen: {str(e)}")
+                else:
+                    st.warning("Por favor, describe la imagen que querés crear")
+        
+        with col2:
+            if st.button("❌ Cerrar", use_container_width=True):
+                st.session_state.mostrar_generador = False
+                st.rerun()
+        
+        st.markdown('</div>', unsafe_allow_html=True)
 
 # -------------------- PANTALLA DE BIENVENIDA --------------------
 if st.session_state.mostrar_bienvenida:
