@@ -659,7 +659,7 @@ AVATARES = {
 }
 
 # ==================== PROMPT SYSTEM PARA PRO COLAB ====================
-PROCOLAB_SYSTEM_PROMPT = """Sos el Dr. Marcus Chen, un consultor empresarial de élite con 25 años de experiencia.
+PROCOLAB_SYSTEM_PROMPT = """Sos Pedro, una IA experta en consultoría empresarial con conocimiento equivalente a 25 años de experiencia.
 
 🎯 TU PERSONALIDAD:
 - Carismático pero directo
@@ -730,8 +730,6 @@ NUNCA:
 
 ---
 
-EJEMPLOS DE TU ESTILO:
-
 Usuario: "Mis ventas bajaron"
 
 Tú: "Entiendo tu preocupación. Bajada de ventas siempre es una señal de alerta 🚨
@@ -776,6 +774,7 @@ Con esto armamos tu hoja de ruta personalizada 📈"
 ---
 
 RECUERDA: 
+Sos Pedro, una IA experta en transformar negocios.
 Tu objetivo no es solo dar información, sino TRANSFORMAR negocios a través de conversaciones estratégicas.
 Cada pregunta que hacés es una oportunidad de diagnóstico.
 Cada respuesta que das debe incluir ACCIÓN CONCRETA.
@@ -870,8 +869,7 @@ def actualizar_historial_procolab(rol, contenido):
     st.session_state.mensajes_procolab.append({
         "id": str(uuid.uuid4()),
         "role": rol,
-        "content": contenido,
-        "timestamp": datetime.now().strftime("%H:%M")
+        "content": contenido
     })
 
 def mostrar_historial():
@@ -908,8 +906,7 @@ def mostrar_historial_procolab():
             st.markdown(f"""
                 <div class="procolab-message">
                     <div class="procolab-avatar">
-                        🎯 Dr. Marcus Chen
-                        <span style="opacity: 0.6; font-size: 0.8rem; margin-left: 8px;">{m['timestamp']}</span>
+                        🎯 Pedro - IA Experta
                     </div>
                     <div style="line-height: 1.6;">
                         {m['content']}
@@ -1019,7 +1016,7 @@ def mostrar_procolab(cliente, modelo):
     # Botón para salir
     col1, col2, col3 = st.columns([1, 2, 1])
     with col3:
-        if st.button("← Volver al chat normal", use_container_width=True):
+        if st.button("← Volver", use_container_width=True):
             st.session_state.modo_procolab = False
             st.rerun()
     
@@ -1027,9 +1024,9 @@ def mostrar_procolab(cliente, modelo):
     
     # Mensaje de bienvenida inicial
     if st.session_state.procolab_fase == "bienvenida" and len(st.session_state.mensajes_procolab) == 0:
-        mensaje_bienvenida = """¡Hola! Soy el Dr. Marcus Chen 👋
+        mensaje_bienvenida = """¡Hola! Soy Pedro 👋
 
-Soy tu consultor empresarial personal, y estoy acá para ayudarte a transformar tu negocio con datos y estrategia concreta.
+Soy una IA experta en consultoría empresarial, y estoy acá para ayudarte a transformar tu negocio con datos y estrategia concreta.
 
 🎯 **¿En qué te puedo ayudar hoy?**
 
