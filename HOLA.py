@@ -1230,3 +1230,4 @@ else:
         actualizar_historial("assistant", respuesta, avatar, estilo=estilo_actual)
 
         st.rerun()
+
