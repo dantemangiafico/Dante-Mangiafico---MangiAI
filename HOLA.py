@@ -318,65 +318,256 @@ st.markdown(
         animation: fadeInUp 0.5s ease-out 0.1s backwards;
     }}
 
-    /* -------- PANTALLA DE LOGIN -------- */
-    .login-container {{
+    /* -------- PANTALLA DE CARGA ÉPICA -------- */
+    .splash-screen {{
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 25%, #0f1729 50%, #1e2847 75%, #0a0e27 100%);
+        background-size: 400% 400%;
+        animation: gradientWave 15s ease infinite;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        min-height: 80vh;
-        padding: 20px;
-        animation: fadeInUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        z-index: 10000;
+        overflow: hidden;
     }}
 
-    .login-box {{
-        background: rgba(255, 255, 255, 0.03);
-        backdrop-filter: blur(20px);
-        border: 2px solid rgba(34, 197, 94, 0.2);
-        border-radius: 24px;
-        padding: 48px 40px;
-        width: 100%;
-        max-width: 420px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        animation: zoomIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s backwards;
+    @keyframes gradientWave {{
+        0% {{ background-position: 0% 50%; }}
+        50% {{ background-position: 100% 50%; }}
+        100% {{ background-position: 0% 50%; }}
     }}
 
-    .login-logo {{
-        width: 100px;
-        height: 100px;
-        margin: 0 auto 24px;
-        display: block;
-        animation: flotar 3s ease-in-out infinite, brillo 3s ease-in-out infinite;
+    .splash-logo {{
+        width: 200px;
+        height: 200px;
+        animation: 
+            logoEntrance 1.5s cubic-bezier(0.34, 1.56, 0.64, 1),
+            flotar 3s ease-in-out 1.5s infinite,
+            pulseGlow 2s ease-in-out 1.5s infinite,
+            rotate360 20s linear 1.5s infinite;
+        filter: drop-shadow(0 0 60px rgba(34, 197, 94, 0.8));
+        position: relative;
+        z-index: 10;
     }}
 
-    .login-title {{
-        font-size: 2rem;
+    @keyframes logoEntrance {{
+        0% {{
+            transform: scale(0) rotate(-180deg);
+            opacity: 0;
+            filter: drop-shadow(0 0 0px rgba(34, 197, 94, 0));
+        }}
+        60% {{
+            transform: scale(1.2) rotate(20deg);
+        }}
+        100% {{
+            transform: scale(1) rotate(0deg);
+            opacity: 1;
+            filter: drop-shadow(0 0 60px rgba(34, 197, 94, 0.8));
+        }}
+    }}
+
+    @keyframes pulseGlow {{
+        0%, 100% {{
+            filter: drop-shadow(0 0 60px rgba(34, 197, 94, 0.8));
+        }}
+        50% {{
+            filter: drop-shadow(0 0 100px rgba(34, 197, 94, 1)) drop-shadow(0 0 150px rgba(16, 185, 129, 0.6));
+        }}
+    }}
+
+    @keyframes rotate360 {{
+        from {{ transform: rotate(0deg); }}
+        to {{ transform: rotate(360deg); }}
+    }}
+
+    .splash-title {{
+        font-size: 3.5rem;
         font-weight: 900;
-        text-align: center;
-        margin-bottom: 8px;
-        background: linear-gradient(135deg, #22c55e 0%, #10b981 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        color: white;
+        letter-spacing: 8px;
+        margin-top: 40px;
+        margin-bottom: 20px;
+        animation: titleGlitch 3s ease-in-out infinite, fadeInUp 1s ease-out 0.5s backwards;
+        text-shadow: 
+            0 0 20px rgba(34, 197, 94, 0.8),
+            0 0 40px rgba(34, 197, 94, 0.6),
+            0 0 60px rgba(34, 197, 94, 0.4);
     }}
 
-    .login-subtitle {{
-        font-size: 0.95rem;
-        text-align: center;
-        opacity: 0.7;
-        margin-bottom: 32px;
+    @keyframes titleGlitch {{
+        0%, 90%, 100% {{
+            text-shadow: 
+                0 0 20px rgba(34, 197, 94, 0.8),
+                0 0 40px rgba(34, 197, 94, 0.6),
+                0 0 60px rgba(34, 197, 94, 0.4);
+        }}
+        92%, 96% {{
+            text-shadow: 
+                -2px 0 20px rgba(255, 0, 128, 0.8),
+                2px 0 40px rgba(0, 255, 255, 0.6),
+                0 0 60px rgba(34, 197, 94, 0.4);
+            transform: translate(2px, -2px);
+        }}
     }}
 
-    .login-divider {{
-        height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.3), transparent);
-        margin: 24px 0;
+    .splash-subtitle {{
+        font-size: 1.2rem;
+        color: rgba(255, 255, 255, 0.7);
+        letter-spacing: 3px;
+        animation: fadeInUp 1s ease-out 0.8s backwards;
+        margin-bottom: 60px;
     }}
 
-    .login-footer {{
-        text-align: center;
-        margin-top: 24px;
-        font-size: 0.85rem;
-        opacity: 0.6;
+    .loading-progress-container {{
+        width: 400px;
+        height: 6px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        overflow: hidden;
+        position: relative;
+        animation: fadeInUp 1s ease-out 1.2s backwards;
+        box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+    }}
+
+    .loading-progress-bar {{
+        height: 100%;
+        background: linear-gradient(90deg, 
+            #22c55e 0%, 
+            #10b981 25%, 
+            #34d399 50%, 
+            #10b981 75%, 
+            #22c55e 100%
+        );
+        background-size: 200% 100%;
+        animation: 
+            progressFill 3.5s ease-out forwards,
+            shimmerProgress 2s linear infinite;
+        border-radius: 10px;
+        box-shadow: 0 0 30px rgba(34, 197, 94, 0.8);
+    }}
+
+    @keyframes progressFill {{
+        from {{ width: 0%; }}
+        to {{ width: 100%; }}
+    }}
+
+    @keyframes shimmerProgress {{
+        0% {{ background-position: 200% 0; }}
+        100% {{ background-position: -200% 0; }}
+    }}
+
+    .loading-percentage {{
+        color: #22c55e;
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-top: 20px;
+        animation: fadeInUp 1s ease-out 1.5s backwards, numberPulse 0.5s ease-in-out infinite;
+        text-shadow: 0 0 20px rgba(34, 197, 94, 0.8);
+    }}
+
+    @keyframes numberPulse {{
+        0%, 100% {{ transform: scale(1); }}
+        50% {{ transform: scale(1.05); }}
+    }}
+
+    .particle-bg {{
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: rgba(34, 197, 94, 0.8);
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(34, 197, 94, 0.8);
+    }}
+
+    .particle-bg:nth-child(1) {{ left: 10%; top: 20%; animation: floatParticleBg 12s ease-in-out infinite; animation-delay: 0s; }}
+    .particle-bg:nth-child(2) {{ left: 20%; top: 80%; animation: floatParticleBg 10s ease-in-out infinite; animation-delay: 0.5s; }}
+    .particle-bg:nth-child(3) {{ left: 80%; top: 30%; animation: floatParticleBg 15s ease-in-out infinite; animation-delay: 1s; }}
+    .particle-bg:nth-child(4) {{ left: 70%; top: 70%; animation: floatParticleBg 13s ease-in-out infinite; animation-delay: 1.5s; }}
+    .particle-bg:nth-child(5) {{ left: 50%; top: 50%; animation: floatParticleBg 11s ease-in-out infinite; animation-delay: 2s; }}
+    .particle-bg:nth-child(6) {{ left: 30%; top: 40%; animation: floatParticleBg 14s ease-in-out infinite; animation-delay: 2.5s; }}
+    .particle-bg:nth-child(7) {{ left: 60%; top: 60%; animation: floatParticleBg 16s ease-in-out infinite; animation-delay: 3s; }}
+    .particle-bg:nth-child(8) {{ left: 15%; top: 50%; animation: floatParticleBg 9s ease-in-out infinite; animation-delay: 3.5s; }}
+    .particle-bg:nth-child(9) {{ left: 85%; top: 15%; animation: floatParticleBg 17s ease-in-out infinite; animation-delay: 4s; }}
+    .particle-bg:nth-child(10) {{ left: 40%; top: 90%; animation: floatParticleBg 12s ease-in-out infinite; animation-delay: 4.5s; }}
+
+    @keyframes floatParticleBg {{
+        0%, 100% {{
+            transform: translate(0, 0) scale(1);
+            opacity: 0.3;
+        }}
+        25% {{
+            transform: translate(100px, -100px) scale(1.5);
+            opacity: 0.8;
+        }}
+        50% {{
+            transform: translate(-50px, -200px) scale(1);
+            opacity: 0.5;
+        }}
+        75% {{
+            transform: translate(80px, -150px) scale(1.3);
+            opacity: 0.7;
+        }}
+    }}
+
+    .orbit-container {{
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        animation: fadeInUp 1s ease-out 1s backwards;
+    }}
+
+    .orbit {{
+        position: absolute;
+        border: 2px solid rgba(34, 197, 94, 0.2);
+        border-radius: 50%;
+        animation: rotateOrbit 20s linear infinite;
+    }}
+
+    .orbit:nth-child(1) {{
+        width: 250px;
+        height: 250px;
+        top: 25px;
+        left: 25px;
+    }}
+
+    .orbit:nth-child(2) {{
+        width: 200px;
+        height: 200px;
+        top: 50px;
+        left: 50px;
+        animation-duration: 15s;
+        animation-direction: reverse;
+    }}
+
+    .orbit:nth-child(3) {{
+        width: 150px;
+        height: 150px;
+        top: 75px;
+        left: 75px;
+        animation-duration: 25s;
+    }}
+
+    @keyframes rotateOrbit {{
+        from {{ transform: rotate(0deg); }}
+        to {{ transform: rotate(360deg); }}
+    }}
+
+    .loading-status {{
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 0.9rem;
+        margin-top: 30px;
+        letter-spacing: 2px;
+        animation: fadeInUp 1s ease-out 1.8s backwards, pulse 2s ease-in-out infinite;
+    }}
+
+    @keyframes pulse {{
+        0%, 100% {{ opacity: 0.5; }}
+        50% {{ opacity: 1; }}
     }}
     </style>
 
@@ -449,16 +640,6 @@ def configurar_sidebar():
         st.session_state.mostrar_bienvenida = True
         st.rerun()
 
-    # Usuario y cerrar sesión
-    st.sidebar.markdown("---")
-    st.sidebar.markdown(f"### 👤 {st.session_state.nombre_usuario}")
-    if st.sidebar.button("🚪 Cerrar Sesión", use_container_width=True, key="logout"):
-        st.session_state.usuario_logueado = False
-        st.session_state.nombre_usuario = ""
-        st.session_state.mensajes = []
-        st.session_state.mostrar_bienvenida = True
-        st.rerun()
-
     return modelo
 
 def inicializar_estado():
@@ -469,10 +650,8 @@ def inicializar_estado():
         st.session_state.mostrar_bienvenida = True
     if "mostrar_generador" not in st.session_state:
         st.session_state.mostrar_generador = False
-    if "usuario_logueado" not in st.session_state:
-        st.session_state.usuario_logueado = False
-    if "nombre_usuario" not in st.session_state:
-        st.session_state.nombre_usuario = ""
+    if "app_cargada" not in st.session_state:
+        st.session_state.app_cargada = False
 
 def actualizar_historial(rol, contenido, avatar, estilo=None):
     """Agrega un mensaje al historial"""
@@ -546,48 +725,60 @@ Respondé SOLO con el prompt mejorado, sin explicaciones adicionales."""
 # ==================== APLICACIÓN PRINCIPAL ====================
 inicializar_estado()
 
-# ==================== PANTALLA DE LOGIN ====================
-if not st.session_state.usuario_logueado:
-    # Ocultar sidebar durante login
+# ==================== PANTALLA DE CARGA ÉPICA ====================
+if not st.session_state.app_cargada:
     st.markdown("""
         <style>
-        [data-testid="stSidebar"] {
-            display: none;
+        .main > div, [data-testid="stSidebar"], header[data-testid="stHeader"] {
+            display: none !important;
         }
         </style>
     """, unsafe_allow_html=True)
     
     st.markdown(f'''
-        <div class="login-container">
-            <div class="login-box">
-                <img src="data:image/png;base64,{logo_definitivo_base64}" class="login-logo">
-                <div class="login-title">MangiAI</div>
-                <div class="login-subtitle">Accede a tu asistente inteligente</div>
-                <div class="login-divider"></div>
+        <div class="splash-screen">
+            <!-- Partículas de fondo -->
+            <div class="particle-bg"></div>
+            <div class="particle-bg"></div>
+            <div class="particle-bg"></div>
+            <div class="particle-bg"></div>
+            <div class="particle-bg"></div>
+            <div class="particle-bg"></div>
+            <div class="particle-bg"></div>
+            <div class="particle-bg"></div>
+            <div class="particle-bg"></div>
+            <div class="particle-bg"></div>
+            
+            <!-- Órbitas alrededor del logo -->
+            <div class="orbit-container">
+                <div class="orbit"></div>
+                <div class="orbit"></div>
+                <div class="orbit"></div>
             </div>
+            
+            <!-- Logo central -->
+            <img src="data:image/png;base64,{logo_definitivo_base64}" class="splash-logo">
+            
+            <!-- Título y subtítulo -->
+            <div class="splash-title">MANGIAI</div>
+            <div class="splash-subtitle">INTELIGENCIA ARTIFICIAL AVANZADA</div>
+            
+            <!-- Barra de progreso -->
+            <div class="loading-progress-container">
+                <div class="loading-progress-bar"></div>
+            </div>
+            
+            <!-- Porcentaje -->
+            <div class="loading-percentage">CARGANDO...</div>
+            
+            <!-- Status -->
+            <div class="loading-status">INICIALIZANDO SISTEMAS...</div>
         </div>
     ''', unsafe_allow_html=True)
     
-    with st.form("login_form"):
-        usuario = st.text_input("👤 Usuario", placeholder="Ingresa tu usuario")
-        password = st.text_input("🔒 Contraseña", type="password", placeholder="Ingresa tu contraseña")
-        
-        col1, col2, col3 = st.columns([1, 2, 1])
-        with col2:
-            submitted = st.form_submit_button("🚀 Iniciar Sesión", use_container_width=True, type="primary")
-        
-        if submitted:
-            if usuario == "admin" and password == "1234":
-                st.session_state.usuario_logueado = True
-                st.session_state.nombre_usuario = usuario
-                st.success("✅ ¡Bienvenido!")
-                time.sleep(1)
-                st.rerun()
-            else:
-                st.error("❌ Usuario o contraseña incorrectos")
-    
-    st.markdown('<div class="login-footer">MangiAI © 2025 - Creado por Dante Mangiafico</div>', unsafe_allow_html=True)
-    st.stop()
+    time.sleep(4)  # Duración de la animación épica
+    st.session_state.app_cargada = True
+    st.rerun()
 
 # ==================== APP PROTEGIDA ====================
 cliente = Groq(api_key=st.secrets["CLAVE_API"])
