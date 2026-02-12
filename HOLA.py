@@ -19,6 +19,183 @@ def cargar_logo_base64(path):
     with open(path, "rb") as f:
         return base64.b64encode(f.read()).decode()
 
+# ==================== FUNCIONES DE GOOGLE SHEETS ====================
+def get_gsheets_connection():
+    """Obtiene la conexión a Google Sheets"""
+    try:
+        import gspread
+        from google.oauth2.service_account import Credentials
+        
+        # Configurar credenciales desde secrets
+        scopes = [
+            "https://www.googleapis.com/auth/spreadsheets",
+            "https://www.googleapis.com/auth/drive"
+        ]
+        
+        credentials = Credentials.from_service_account_info(
+            st.secrets["connections"]["gsheets"],
+            scopes=scopes
+        )
+        
+        client = gspread.authorize(credentials)
+        spreadsheet_url = st.secrets["gsheets"]["spreadsheet"]
+        
+        # Extraer el ID del spreadsheet de la URL
+        if "/d/" in spreadsheet_url:
+            spreadsheet_id = spreadsheet_url.split("/d/")[1].split("/")[0]
+        else:
+            spreadsheet_id = spreadsheet_url
+        
+        return client.open_by_key(spreadsheet_id)
+        
+    except Exception as e:
+        st.error(f"Error conectando a Google Sheets: {str(e)}")
+        return None
+
+def obtener_usuarios_activos():
+    """Obtiene la lista de usuarios activos en el chat (últimos 30 min)"""
+    try:
+        spreadsheet = get_gsheets_connection()
+        if not spreadsheet:
+            return []
+        
+        # Verificar si existe la hoja, si no, crearla
+        try:
+            worksheet = spreadsheet.worksheet("usuarios_activos")
+        except:
+            worksheet = spreadsheet.add_worksheet(title="usuarios_activos", rows="100", cols="3")
+            worksheet.append_row(["username", "ultimo_acceso", "avatar"])
+        
+        try:
+            registros = worksheet.get_all_records()
+        except:
+            return []
+        
+        # Filtrar usuarios activos (últimos 30 minutos)
+        usuarios_activos = []
+        ahora = datetime.now()
+        
+        for registro in registros:
+            try:
+                ultimo_acceso = datetime.fromisoformat(registro.get('ultimo_acceso', ''))
+                diferencia = (ahora - ultimo_acceso).total_seconds() / 60
+                
+                if diferencia <= 30:  # Activo en los últimos 30 minutos
+                    usuarios_activos.append({
+                        'username': registro.get('username'),
+                        'avatar': registro.get('avatar', '👤')
+                    })
+            except:
+                continue
+        
+        return usuarios_activos
+        
+    except Exception as e:
+        st.error(f"Error al obtener usuarios: {str(e)}")
+        return []
+
+def registrar_usuario_activo(username, avatar="👤"):
+    """Registra o actualiza la actividad de un usuario"""
+    try:
+        spreadsheet = get_gsheets_connection()
+        if not spreadsheet:
+            return False
+        
+        # Verificar si existe la hoja, si no, crearla
+        try:
+            worksheet = spreadsheet.worksheet("usuarios_activos")
+        except:
+            worksheet = spreadsheet.add_worksheet(title="usuarios_activos", rows="100", cols="3")
+            worksheet.append_row(["username", "ultimo_acceso", "avatar"])
+        
+        try:
+            registros = worksheet.get_all_records()
+        except:
+            registros = []
+        
+        # Buscar si el usuario ya existe
+        fila_usuario = None
+        for idx, registro in enumerate(registros, start=2):  # start=2 porque row 1 es header
+            if registro.get('username') == username:
+                fila_usuario = idx
+                break
+        
+        timestamp = datetime.now().isoformat()
+        
+        if fila_usuario:
+            # Actualizar usuario existente
+            worksheet.update_cell(fila_usuario, 2, timestamp)
+            worksheet.update_cell(fila_usuario, 3, avatar)
+        else:
+            # Agregar nuevo usuario
+            worksheet.append_row([username, timestamp, avatar])
+        
+        return True
+        
+    except Exception as e:
+        st.error(f"Error al registrar usuario: {str(e)}")
+        return False
+
+def crear_sala_id(usuario1, usuario2):
+    """Crea un ID único para la sala de chat entre dos usuarios"""
+    usuarios_ordenados = sorted([usuario1, usuario2])
+    return f"{usuarios_ordenados[0]}_{usuarios_ordenados[1]}"
+
+def enviar_mensaje_chat(sala_id, username, mensaje):
+    """Envía un mensaje al chat"""
+    try:
+        spreadsheet = get_gsheets_connection()
+        if not spreadsheet:
+            return False
+        
+        # Verificar si existe la hoja, si no, crearla
+        try:
+            worksheet = spreadsheet.worksheet("mensajes")
+        except:
+            worksheet = spreadsheet.add_worksheet(title="mensajes", rows="1000", cols="4")
+            worksheet.append_row(["sala_id", "username", "mensaje", "timestamp"])
+        
+        nueva_fila = [
+            sala_id,
+            username,
+            mensaje,
+            datetime.now().isoformat()
+        ]
+        
+        worksheet.append_row(nueva_fila)
+        return True
+        
+    except Exception as e:
+        st.error(f"Error al enviar mensaje: {str(e)}")
+        return False
+
+def obtener_mensajes_chat(sala_id):
+    """Obtiene los mensajes de una sala de chat"""
+    try:
+        spreadsheet = get_gsheets_connection()
+        if not spreadsheet:
+            return []
+        
+        try:
+            worksheet = spreadsheet.worksheet("mensajes")
+        except:
+            return []
+        
+        try:
+            registros = worksheet.get_all_records()
+        except:
+            return []
+        
+        # Filtrar por sala_id y ordenar por timestamp
+        mensajes = [r for r in registros if r.get('sala_id') == sala_id]
+        mensajes.sort(key=lambda x: x.get('timestamp', ''))
+        
+        return mensajes
+        
+    except Exception as e:
+        st.error(f"Error al obtener mensajes: {str(e)}")
+        return []
+
 # ==================== LOGOS ====================
 logo_fijo_base64 = cargar_logo_base64("logomangi.png")
 logo_definitivo_base64 = cargar_logo_base64("logodefinitivo2.png")
@@ -531,6 +708,70 @@ st.markdown(
         transition: width 0.5s ease;
     }}
 
+    /* -------- CHAT SOCIAL -------- */
+    .chat-banner {{
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #6366f1 100%);
+        background-size: 200% 200%;
+        animation: gradientShift 8s ease infinite;
+        border-radius: 16px;
+        padding: 24px;
+        margin: 20px 0;
+        box-shadow: 0 8px 32px rgba(99, 102, 241, 0.3);
+        border: 2px solid rgba(139, 92, 246, 0.5);
+    }}
+
+    .chat-title {{
+        font-size: 2rem;
+        font-weight: 900;
+        color: white;
+        text-align: center;
+        margin-bottom: 8px;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }}
+
+    .chat-subtitle {{
+        font-size: 1rem;
+        color: rgba(255, 255, 255, 0.9);
+        text-align: center;
+    }}
+
+    .user-card {{
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 16px;
+        margin: 8px 0;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }}
+
+    .user-card:hover {{
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }}
+
+    .chat-message {{
+        background: rgba(99, 102, 241, 0.1);
+        border-left: 4px solid #6366f1;
+        border-radius: 8px;
+        padding: 12px;
+        margin: 8px 0;
+        animation: messageSlideIn 0.3s ease-out;
+    }}
+
+    .chat-message-username {{
+        font-weight: 700;
+        color: #6366f1;
+        margin-bottom: 4px;
+    }}
+
+    .chat-message-time {{
+        font-size: 0.75rem;
+        opacity: 0.6;
+        margin-top: 4px;
+    }}
+
     /* -------- SCROLLBAR PERSONALIZADO -------- */
     .main, [data-testid="stAppViewContainer"], section[data-testid="stMainBlockContainer"] {{
         overflow-y: auto !important;
@@ -661,6 +902,9 @@ AVATARES = {
     "💻 Código": ("💻", "Código")
 }
 
+# Lista de avatares disponibles para elegir
+AVATARES_DISPONIBLES = ["😊", "🤓", "😎", "🥳", "🤠", "🦸", "🧙", "🐱", "🐶", "🦊", "🐼", "🦁", "🐯", "🦄"]
+
 # ==================== PROMPT SYSTEM PARA PRO COLAB ====================
 PROCOLAB_SYSTEM_PROMPT = """Sos Pedro, una IA experta en consultoría empresarial con conocimiento equivalente a 25 años de experiencia.
 
@@ -763,6 +1007,16 @@ def configurar_sidebar():
     """Configura el sidebar con modelos, estilos y herramientas"""
     st.sidebar.title("⚙️ Configuración")
     
+    # Mostrar usuario actual si está definido
+    if st.session_state.get("username_actual"):
+        st.sidebar.success(f"{st.session_state.avatar_actual} {st.session_state.username_actual}")
+        if st.sidebar.button("🔄 Cambiar Usuario", use_container_width=True):
+            st.session_state.username_actual = None
+            st.session_state.avatar_actual = None
+            st.session_state.mostrar_chat_social = False
+            st.rerun()
+        st.sidebar.markdown("---")
+    
     modelo = st.sidebar.selectbox("Modelo:", MODELOS)
 
     st.sidebar.markdown("### 💬 Estilo de respuesta")
@@ -778,9 +1032,21 @@ def configurar_sidebar():
     st.sidebar.markdown("---")
     st.sidebar.markdown("### 🛠️ Herramientas")
     
+    # BOTÓN CHAT SOCIAL
+    if st.sidebar.button("💬 Chat Social", use_container_width=True, key="chat_social_btn", type="primary"):
+        # Si no tiene username, pedirlo
+        if not st.session_state.get("username_actual"):
+            st.session_state.pedir_username = True
+        else:
+            st.session_state.mostrar_chat_social = True
+            st.session_state.modo_procolab = False
+            st.session_state.mostrar_generador = False
+        st.rerun()
+    
     # BOTÓN PRO COLAB
     if st.sidebar.button("🎯 PRO COLAB", use_container_width=True, key="procolab_btn", type="primary"):
         st.session_state.modo_procolab = True
+        st.session_state.mostrar_chat_social = False
         st.session_state.mostrar_generador = False
         st.session_state.procolab_fase = "bienvenida"
         st.session_state.mensajes_procolab = []
@@ -789,6 +1055,7 @@ def configurar_sidebar():
     
     if st.sidebar.button("🧠 Prompt Genius", use_container_width=True, key="gen_img", type="secondary"):
         st.session_state.mostrar_generador = True
+        st.session_state.mostrar_chat_social = False
         st.session_state.modo_procolab = False
         st.rerun()
 
@@ -796,6 +1063,7 @@ def configurar_sidebar():
         st.session_state.mensajes = []
         st.session_state.mostrar_bienvenida = True
         st.session_state.modo_procolab = False
+        st.session_state.mostrar_chat_social = False
         st.rerun()
 
     return modelo
@@ -818,6 +1086,16 @@ def inicializar_estado():
         st.session_state.procolab_fase = "bienvenida"
     if "datos_negocio" not in st.session_state:
         st.session_state.datos_negocio = {}
+    if "username_actual" not in st.session_state:
+        st.session_state.username_actual = None
+    if "avatar_actual" not in st.session_state:
+        st.session_state.avatar_actual = None
+    if "mostrar_chat_social" not in st.session_state:
+        st.session_state.mostrar_chat_social = False
+    if "chat_actual" not in st.session_state:
+        st.session_state.chat_actual = None
+    if "pedir_username" not in st.session_state:
+        st.session_state.pedir_username = False
 
 def actualizar_historial(rol, contenido, avatar, estilo=None):
     """Agrega un mensaje al historial"""
@@ -947,6 +1225,63 @@ Respondé SOLO con el prompt mejorado, sin explicaciones adicionales."""
         st.error(f"Error al mejorar prompt: {str(e)}")
         return prompt_basico
 
+# ==================== PANTALLA PARA PEDIR NOMBRE DE USUARIO ====================
+def mostrar_pedir_username():
+    """Pantalla para que el usuario ingrese su nombre"""
+    st.markdown("""
+        <div class="chat-banner">
+            <div class="chat-title">💬 Chat Social</div>
+            <div class="chat-subtitle">
+                Elegí tu nombre y avatar para empezar a chatear
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("### ✏️ ¿Cómo querés que te llamemos?")
+    
+    col1, col2 = st.columns([3, 1])
+    
+    with col1:
+        username_input = st.text_input(
+            "Nombre de usuario",
+            placeholder="Ej: Juan, María, etc.",
+            key="username_input",
+            label_visibility="collapsed"
+        )
+    
+    with col2:
+        avatar_input = st.selectbox(
+            "Avatar",
+            AVATARES_DISPONIBLES,
+            key="avatar_input",
+            label_visibility="collapsed"
+        )
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
+    
+    with col2:
+        if st.button("🚀 Entrar al Chat", use_container_width=True, type="primary"):
+            if username_input and len(username_input.strip()) > 0:
+                st.session_state.username_actual = username_input.strip()
+                st.session_state.avatar_actual = avatar_input
+                st.session_state.pedir_username = False
+                
+                # Registrar usuario como activo
+                registrar_usuario_activo(st.session_state.username_actual, st.session_state.avatar_actual)
+                
+                st.session_state.mostrar_chat_social = True
+                st.success(f"¡Bienvenido {avatar_input} {username_input}!")
+                time.sleep(1)
+                st.rerun()
+            else:
+                st.warning("⚠️ Por favor ingresá un nombre")
+    
+    st.markdown("---")
+    
+    if st.button("← Volver", use_container_width=False):
+        st.session_state.pedir_username = False
+        st.rerun()
+
 # ==================== PANTALLA PRO COLAB ====================
 def mostrar_procolab(cliente, modelo):
     """Muestra la interfaz completa de PRO COLAB"""
@@ -1020,6 +1355,98 @@ Algunos ejemplos:
         actualizar_historial_procolab("assistant", respuesta)
         st.rerun()
 
+# ==================== PANTALLA DE CHAT SOCIAL ====================
+def mostrar_chat_social(cliente, modelo):
+    """Muestra la interfaz de chat social"""
+    
+    # Actualizar actividad del usuario
+    if st.session_state.username_actual:
+        registrar_usuario_activo(st.session_state.username_actual, st.session_state.avatar_actual)
+    
+    st.markdown("""
+        <div class="chat-banner">
+            <div class="chat-title">💬 Chat Social</div>
+            <div class="chat-subtitle">
+                Conectá con otros usuarios de MangiAI
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col3:
+        if st.button("← Volver", use_container_width=True):
+            st.session_state.mostrar_chat_social = False
+            st.session_state.chat_actual = None
+            st.rerun()
+    
+    st.markdown("---")
+    
+    # Si no hay chat seleccionado, mostrar lista de usuarios
+    if not st.session_state.chat_actual:
+        st.markdown("### 👥 Usuarios en línea")
+        
+        usuarios = obtener_usuarios_activos()
+        usuarios_disponibles = [u for u in usuarios if u['username'] != st.session_state.username_actual]
+        
+        if not usuarios_disponibles:
+            st.info("No hay otros usuarios en línea. ¡Invitá a tus amigos!")
+        else:
+            for usuario in usuarios_disponibles:
+                if st.button(
+                    f"{usuario['avatar']} Chatear con {usuario['username']}", 
+                    key=f"chat_{usuario['username']}", 
+                    use_container_width=True
+                ):
+                    st.session_state.chat_actual = usuario['username']
+                    st.rerun()
+    
+    # Si hay chat seleccionado, mostrar conversación
+    else:
+        usuario_destino = st.session_state.chat_actual
+        sala_id = crear_sala_id(st.session_state.username_actual, usuario_destino)
+        
+        st.markdown(f"### 💬 Chat con **{usuario_destino}**")
+        
+        if st.button("← Volver a lista de usuarios", use_container_width=False):
+            st.session_state.chat_actual = None
+            st.rerun()
+        
+        st.markdown("---")
+        
+        # Mostrar mensajes
+        mensajes = obtener_mensajes_chat(sala_id)
+        
+        if not mensajes:
+            st.info("No hay mensajes todavía. ¡Empezá la conversación!")
+        else:
+            for msg in mensajes:
+                es_propio = msg['username'] == st.session_state.username_actual
+                try:
+                    timestamp = datetime.fromisoformat(msg['timestamp']).strftime("%H:%M")
+                except:
+                    timestamp = ""
+                
+                if es_propio:
+                    with st.chat_message("user", avatar=st.session_state.avatar_actual):
+                        st.markdown(msg['mensaje'])
+                        if timestamp:
+                            st.caption(timestamp)
+                else:
+                    with st.chat_message("assistant", avatar="👤"):
+                        st.markdown(f"**{msg['username']}**")
+                        st.markdown(msg['mensaje'])
+                        if timestamp:
+                            st.caption(timestamp)
+        
+        # Input para nuevo mensaje
+        mensaje_nuevo = st.chat_input("Escribe tu mensaje...")
+        
+        if mensaje_nuevo:
+            if enviar_mensaje_chat(sala_id, st.session_state.username_actual, mensaje_nuevo):
+                st.rerun()
+            else:
+                st.error("Error al enviar el mensaje")
+
 # ==================== APLICACIÓN PRINCIPAL ====================
 inicializar_estado()
 
@@ -1066,8 +1493,16 @@ modelo = configurar_sidebar()
 
 # ==================== LÓGICA DE PANTALLAS ====================
 
+# Si está pidiendo username
+if st.session_state.get("pedir_username", False):
+    mostrar_pedir_username()
+
+# Si está en modo chat social
+elif st.session_state.get("mostrar_chat_social", False):
+    mostrar_chat_social(cliente, modelo)
+
 # Si está en modo PRO COLAB
-if st.session_state.modo_procolab:
+elif st.session_state.modo_procolab:
     mostrar_procolab(cliente, modelo)
 
 # Si está en generador de imágenes
