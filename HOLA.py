@@ -5,8 +5,6 @@ import base64
 import uuid
 import html
 import time
-import json
-import pandas as pd
 
 # ==================== CONFIGURACIÓN ====================
 st.set_page_config(
