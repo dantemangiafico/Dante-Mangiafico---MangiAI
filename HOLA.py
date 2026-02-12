@@ -7,7 +7,6 @@ import html
 import time
 import json
 import pandas as pd
-import hashlib
 
 # ==================== CONFIGURACIÓN ====================
 st.set_page_config(
@@ -21,173 +20,6 @@ def cargar_logo_base64(path):
     """Carga una imagen y la convierte a base64"""
     with open(path, "rb") as f:
         return base64.b64encode(f.read()).decode()
-
-def hash_password(password):
-    """Hashea una contraseña para guardarla de forma segura"""
-    return hashlib.sha256(password.encode()).hexdigest()
-
-# ==================== FUNCIONES DE GOOGLE SHEETS ====================
-def get_gsheets_connection():
-    """Obtiene la conexión a Google Sheets"""
-    try:
-        import gspread
-        from google.oauth2.service_account import Credentials
-        
-        # Configurar credenciales desde secrets
-        scopes = [
-            "https://www.googleapis.com/auth/spreadsheets",
-            "https://www.googleapis.com/auth/drive"
-        ]
-        
-        credentials = Credentials.from_service_account_info(
-            st.secrets["connections"]["gsheets"],
-            scopes=scopes
-        )
-        
-        client = gspread.authorize(credentials)
-        spreadsheet_url = st.secrets["gsheets"]["spreadsheet"]
-        
-        # Extraer el ID del spreadsheet de la URL
-        if "/d/" in spreadsheet_url:
-            spreadsheet_id = spreadsheet_url.split("/d/")[1].split("/")[0]
-        else:
-            spreadsheet_id = spreadsheet_url
-        
-        return client.open_by_key(spreadsheet_id)
-        
-    except Exception as e:
-        st.error(f"Error conectando a Google Sheets: {str(e)}")
-        return None
-
-def registrar_usuario(username, password):
-    """Registra un nuevo usuario en Google Sheets"""
-    try:
-        spreadsheet = get_gsheets_connection()
-        if not spreadsheet:
-            return False, "Error de conexión"
-        
-        worksheet = spreadsheet.worksheet("usuarios")
-        
-        # Obtener todos los usuarios existentes
-        try:
-            registros = worksheet.get_all_records()
-        except:
-            registros = []
-        
-        # Verificar si el usuario ya existe
-        for registro in registros:
-            if registro.get('username') == username:
-                return False, "El usuario ya existe"
-        
-        # Agregar nuevo usuario
-        nueva_fila = [
-            username,
-            hash_password(password),
-            datetime.now().isoformat()
-        ]
-        
-        worksheet.append_row(nueva_fila)
-        return True, "Usuario registrado exitosamente"
-        
-    except Exception as e:
-        return False, f"Error al registrar: {str(e)}"
-
-def verificar_login(username, password):
-    """Verifica las credenciales de login"""
-    try:
-        spreadsheet = get_gsheets_connection()
-        if not spreadsheet:
-            return False
-        
-        worksheet = spreadsheet.worksheet("usuarios")
-        
-        try:
-            registros = worksheet.get_all_records()
-        except:
-            return False
-        
-        password_hash = hash_password(password)
-        
-        for registro in registros:
-            if registro.get('username') == username and registro.get('password') == password_hash:
-                return True
-        
-        return False
-        
-    except Exception as e:
-        st.error(f"Error al verificar login: {str(e)}")
-        return False
-
-def obtener_usuarios():
-    """Obtiene la lista de usuarios registrados"""
-    try:
-        spreadsheet = get_gsheets_connection()
-        if not spreadsheet:
-            return []
-        
-        worksheet = spreadsheet.worksheet("usuarios")
-        
-        try:
-            registros = worksheet.get_all_records()
-            return [r.get('username') for r in registros if r.get('username')]
-        except:
-            return []
-            
-    except Exception as e:
-        st.error(f"Error al obtener usuarios: {str(e)}")
-        return []
-
-def crear_sala_id(usuario1, usuario2):
-    """Crea un ID único para la sala de chat entre dos usuarios"""
-    usuarios_ordenados = sorted([usuario1, usuario2])
-    return f"{usuarios_ordenados[0]}_{usuarios_ordenados[1]}"
-
-def enviar_mensaje_chat(sala_id, username, mensaje):
-    """Envía un mensaje al chat"""
-    try:
-        spreadsheet = get_gsheets_connection()
-        if not spreadsheet:
-            return False
-        
-        worksheet = spreadsheet.worksheet("mensajes")
-        
-        nueva_fila = [
-            sala_id,
-            username,
-            mensaje,
-            datetime.now().isoformat()
-        ]
-        
-        worksheet.append_row(nueva_fila)
-        return True
-        
-    except Exception as e:
-        st.error(f"Error al enviar mensaje: {str(e)}")
-        return False
-
-def obtener_mensajes_chat(sala_id):
-    """Obtiene los mensajes de una sala de chat"""
-    try:
-        spreadsheet = get_gsheets_connection()
-        if not spreadsheet:
-            return []
-        
-        worksheet = spreadsheet.worksheet("mensajes")
-        
-        try:
-            registros = worksheet.get_all_records()
-        except:
-            return []
-        
-        # Filtrar por sala_id y ordenar por timestamp
-        mensajes = [r for r in registros if r.get('sala_id') == sala_id]
-        mensajes.sort(key=lambda x: x.get('timestamp', ''))
-        
-        return mensajes
-        
-    except Exception as e:
-        st.error(f"Error al obtener mensajes: {str(e)}")
-        return []
 
 # ==================== LOGOS ====================
 logo_fijo_base64 = cargar_logo_base64("logomangi.png")
@@ -701,70 +533,6 @@ st.markdown(
         transition: width 0.5s ease;
     }}
 
-    /* -------- CHAT SOCIAL -------- */
-    .chat-banner {{
-        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #6366f1 100%);
-        background-size: 200% 200%;
-        animation: gradientShift 8s ease infinite;
-        border-radius: 16px;
-        padding: 24px;
-        margin: 20px 0;
-        box-shadow: 0 8px 32px rgba(99, 102, 241, 0.3);
-        border: 2px solid rgba(139, 92, 246, 0.5);
-    }}
-
-    .chat-title {{
-        font-size: 2rem;
-        font-weight: 900;
-        color: white;
-        text-align: center;
-        margin-bottom: 8px;
-        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-    }}
-
-    .chat-subtitle {{
-        font-size: 1rem;
-        color: rgba(255, 255, 255, 0.9);
-        text-align: center;
-    }}
-
-    .user-card {{
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 12px;
-        padding: 16px;
-        margin: 8px 0;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }}
-
-    .user-card:hover {{
-        background: rgba(255, 255, 255, 0.1);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    }}
-
-    .chat-message {{
-        background: rgba(99, 102, 241, 0.1);
-        border-left: 4px solid #6366f1;
-        border-radius: 8px;
-        padding: 12px;
-        margin: 8px 0;
-        animation: messageSlideIn 0.3s ease-out;
-    }}
-
-    .chat-message-username {{
-        font-weight: 700;
-        color: #6366f1;
-        margin-bottom: 4px;
-    }}
-
-    .chat-message-time {{
-        font-size: 0.75rem;
-        opacity: 0.6;
-        margin-top: 4px;
-    }}
-
     /* -------- SCROLLBAR PERSONALIZADO -------- */
     .main, [data-testid="stAppViewContainer"], section[data-testid="stMainBlockContainer"] {{
         overflow-y: auto !important;
@@ -997,16 +765,6 @@ def configurar_sidebar():
     """Configura el sidebar con modelos, estilos y herramientas"""
     st.sidebar.title("⚙️ Configuración")
     
-    # Mostrar usuario logueado
-    if st.session_state.get("usuario_logueado"):
-        st.sidebar.success(f"👤 {st.session_state.usuario_logueado}")
-        if st.sidebar.button("🚪 Cerrar sesión", use_container_width=True):
-            st.session_state.usuario_logueado = None
-            st.session_state.mostrar_chat_social = False
-            st.session_state.modo_procolab = False
-            st.rerun()
-        st.sidebar.markdown("---")
-    
     modelo = st.sidebar.selectbox("Modelo:", MODELOS)
 
     st.sidebar.markdown("### 💬 Estilo de respuesta")
@@ -1022,18 +780,10 @@ def configurar_sidebar():
     st.sidebar.markdown("---")
     st.sidebar.markdown("### 🛠️ Herramientas")
     
-    # BOTÓN CHAT SOCIAL
-    if st.session_state.get("usuario_logueado"):
-        if st.sidebar.button("💬 Chat Social", use_container_width=True, key="chat_social_btn", type="primary"):
-            st.session_state.mostrar_chat_social = True
-            st.session_state.modo_procolab = False
-            st.session_state.mostrar_generador = False
-            st.rerun()
-    
     # BOTÓN PRO COLAB
     if st.sidebar.button("🎯 PRO COLAB", use_container_width=True, key="procolab_btn", type="primary"):
         st.session_state.modo_procolab = True
-        st.session_state.mostrar_chat_social = False
+        st.session_state.mostrar_generador = False
         st.session_state.procolab_fase = "bienvenida"
         st.session_state.mensajes_procolab = []
         st.session_state.datos_negocio = {}
@@ -1041,7 +791,6 @@ def configurar_sidebar():
     
     if st.sidebar.button("🧠 Prompt Genius", use_container_width=True, key="gen_img", type="secondary"):
         st.session_state.mostrar_generador = True
-        st.session_state.mostrar_chat_social = False
         st.session_state.modo_procolab = False
         st.rerun()
 
@@ -1049,7 +798,6 @@ def configurar_sidebar():
         st.session_state.mensajes = []
         st.session_state.mostrar_bienvenida = True
         st.session_state.modo_procolab = False
-        st.session_state.mostrar_chat_social = False
         st.rerun()
 
     return modelo
@@ -1072,12 +820,6 @@ def inicializar_estado():
         st.session_state.procolab_fase = "bienvenida"
     if "datos_negocio" not in st.session_state:
         st.session_state.datos_negocio = {}
-    if "usuario_logueado" not in st.session_state:
-        st.session_state.usuario_logueado = None
-    if "mostrar_chat_social" not in st.session_state:
-        st.session_state.mostrar_chat_social = False
-    if "chat_actual" not in st.session_state:
-        st.session_state.chat_actual = None
 
 def actualizar_historial(rol, contenido, avatar, estilo=None):
     """Agrega un mensaje al historial"""
@@ -1280,152 +1022,6 @@ Algunos ejemplos:
         actualizar_historial_procolab("assistant", respuesta)
         st.rerun()
 
-# ==================== PANTALLA DE LOGIN/REGISTRO ====================
-def mostrar_login():
-    """Muestra la pantalla de login/registro"""
-    st.markdown(
-        f"""
-        <div class="welcome-screen">
-            <img src="data:image/png;base64,{logo_definitivo_base64}">
-            <h1>¡Bienvenido a MangiAI!</h1>
-            <div class="welcome-subtitle">
-                Iniciá sesión o registrate para acceder al chat social
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-    
-    tab1, tab2 = st.tabs(["🔑 Iniciar Sesión", "📝 Registrarse"])
-    
-    with tab1:
-        st.markdown("### Iniciar Sesión")
-        username_login = st.text_input("Usuario", key="username_login")
-        password_login = st.text_input("Contraseña", type="password", key="password_login")
-        
-        col1, col2, col3 = st.columns([1, 1, 1])
-        with col2:
-            if st.button("Entrar", use_container_width=True):
-                if username_login and password_login:
-                    if verificar_login(username_login, password_login):
-                        st.session_state.usuario_logueado = username_login
-                        st.session_state.mostrar_bienvenida = False
-                        st.success("¡Bienvenido!")
-                        time.sleep(1)
-                        st.rerun()
-                    else:
-                        st.error("Usuario o contraseña incorrectos")
-                else:
-                    st.warning("Completá todos los campos")
-    
-    with tab2:
-        st.markdown("### Crear Cuenta")
-        username_reg = st.text_input("Usuario", key="username_reg")
-        password_reg = st.text_input("Contraseña", type="password", key="password_reg")
-        password_confirm = st.text_input("Confirmar Contraseña", type="password", key="password_confirm")
-        
-        col1, col2, col3 = st.columns([1, 1, 1])
-        with col2:
-            if st.button("Registrarse", use_container_width=True):
-                if username_reg and password_reg and password_confirm:
-                    if password_reg != password_confirm:
-                        st.error("Las contraseñas no coinciden")
-                    elif len(password_reg) < 4:
-                        st.error("La contraseña debe tener al menos 4 caracteres")
-                    else:
-                        exito, mensaje = registrar_usuario(username_reg, password_reg)
-                        if exito:
-                            st.success(mensaje)
-                            st.info("¡Ahora podés iniciar sesión!")
-                        else:
-                            st.error(mensaje)
-                else:
-                    st.warning("Completá todos los campos")
-
-# ==================== PANTALLA DE CHAT SOCIAL ====================
-def mostrar_chat_social(cliente, modelo):
-    """Muestra la interfaz de chat social"""
-    
-    st.markdown("""
-        <div class="chat-banner">
-            <div class="chat-title">💬 Chat Social</div>
-            <div class="chat-subtitle">
-                Conectá con otros usuarios de MangiAI
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col3:
-        if st.button("← Volver", use_container_width=True):
-            st.session_state.mostrar_chat_social = False
-            st.session_state.chat_actual = None
-            st.rerun()
-    
-    st.markdown("---")
-    
-    # Si no hay chat seleccionado, mostrar lista de usuarios
-    if not st.session_state.chat_actual:
-        st.markdown("### 👥 Usuarios disponibles")
-        
-        usuarios = obtener_usuarios()
-        usuarios_disponibles = [u for u in usuarios if u != st.session_state.usuario_logueado]
-        
-        if not usuarios_disponibles:
-            st.info("No hay otros usuarios registrados todavía. ¡Invitá a tus amigos!")
-        else:
-            for usuario in usuarios_disponibles:
-                if st.button(f"💬 Chatear con {usuario}", key=f"chat_{usuario}", use_container_width=True):
-                    st.session_state.chat_actual = usuario
-                    st.rerun()
-    
-    # Si hay chat seleccionado, mostrar conversación
-    else:
-        usuario_destino = st.session_state.chat_actual
-        sala_id = crear_sala_id(st.session_state.usuario_logueado, usuario_destino)
-        
-        st.markdown(f"### 💬 Chat con **{usuario_destino}**")
-        
-        if st.button("← Volver a lista de usuarios", use_container_width=False):
-            st.session_state.chat_actual = None
-            st.rerun()
-        
-        st.markdown("---")
-        
-        # Mostrar mensajes
-        mensajes = obtener_mensajes_chat(sala_id)
-        
-        if not mensajes:
-            st.info("No hay mensajes todavía. ¡Empezá la conversación!")
-        else:
-            for msg in mensajes:
-                es_propio = msg['username'] == st.session_state.usuario_logueado
-                try:
-                    timestamp = datetime.fromisoformat(msg['timestamp']).strftime("%H:%M")
-                except:
-                    timestamp = ""
-                
-                if es_propio:
-                    with st.chat_message("user", avatar="😊"):
-                        st.markdown(msg['mensaje'])
-                        if timestamp:
-                            st.caption(timestamp)
-                else:
-                    with st.chat_message("assistant", avatar="👤"):
-                        st.markdown(f"**{msg['username']}**")
-                        st.markdown(msg['mensaje'])
-                        if timestamp:
-                            st.caption(timestamp)
-        
-        # Input para nuevo mensaje
-        mensaje_nuevo = st.chat_input("Escribe tu mensaje...")
-        
-        if mensaje_nuevo:
-            if enviar_mensaje_chat(sala_id, st.session_state.usuario_logueado, mensaje_nuevo):
-                st.rerun()
-            else:
-                st.error("Error al enviar el mensaje")
-
 # ==================== APLICACIÓN PRINCIPAL ====================
 inicializar_estado()
 
@@ -1472,16 +1068,8 @@ modelo = configurar_sidebar()
 
 # ==================== LÓGICA DE PANTALLAS ====================
 
-# Si el usuario no está logueado, mostrar login
-if not st.session_state.usuario_logueado:
-    mostrar_login()
-
-# Si está en modo chat social
-elif st.session_state.get("mostrar_chat_social", False):
-    mostrar_chat_social(cliente, modelo)
-
 # Si está en modo PRO COLAB
-elif st.session_state.modo_procolab:
+if st.session_state.modo_procolab:
     mostrar_procolab(cliente, modelo)
 
 # Si está en generador de imágenes
