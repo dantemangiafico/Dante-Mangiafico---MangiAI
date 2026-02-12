@@ -7,7 +7,6 @@ import html
 import time
 import json
 import pandas as pd
-from streamlit_gsheets import GSheetsConnection
 import hashlib
 
 # ==================== CONFIGURACIÓN ====================
@@ -28,43 +27,66 @@ def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
 # ==================== FUNCIONES DE GOOGLE SHEETS ====================
-@st.cache_resource
 def get_gsheets_connection():
     """Obtiene la conexión a Google Sheets"""
     try:
-        return st.connection("gsheets", type=GSheetsConnection)
+        import gspread
+        from google.oauth2.service_account import Credentials
+        
+        # Configurar credenciales desde secrets
+        scopes = [
+            "https://www.googleapis.com/auth/spreadsheets",
+            "https://www.googleapis.com/auth/drive"
+        ]
+        
+        credentials = Credentials.from_service_account_info(
+            st.secrets["connections"]["gsheets"],
+            scopes=scopes
+        )
+        
+        client = gspread.authorize(credentials)
+        spreadsheet_url = st.secrets["gsheets"]["spreadsheet"]
+        
+        # Extraer el ID del spreadsheet de la URL
+        if "/d/" in spreadsheet_url:
+            spreadsheet_id = spreadsheet_url.split("/d/")[1].split("/")[0]
+        else:
+            spreadsheet_id = spreadsheet_url
+        
+        return client.open_by_key(spreadsheet_id)
+        
     except Exception as e:
         st.error(f"Error conectando a Google Sheets: {str(e)}")
         return None
 
 def registrar_usuario(username, password):
     """Registra un nuevo usuario en Google Sheets"""
-    conn = get_gsheets_connection()
-    if not conn:
-        return False, "Error de conexión"
-    
     try:
-        # Leer usuarios existentes
-        df_usuarios = conn.read(worksheet="usuarios", usecols=[0, 1, 2])
+        spreadsheet = get_gsheets_connection()
+        if not spreadsheet:
+            return False, "Error de conexión"
+        
+        worksheet = spreadsheet.worksheet("usuarios")
+        
+        # Obtener todos los usuarios existentes
+        try:
+            registros = worksheet.get_all_records()
+        except:
+            registros = []
         
         # Verificar si el usuario ya existe
-        if not df_usuarios.empty and username in df_usuarios['username'].values:
-            return False, "El usuario ya existe"
+        for registro in registros:
+            if registro.get('username') == username:
+                return False, "El usuario ya existe"
         
-        # Crear nuevo usuario
-        nuevo_usuario = pd.DataFrame([{
-            'username': username,
-            'password': hash_password(password),
-            'created_at': datetime.now().isoformat()
-        }])
+        # Agregar nuevo usuario
+        nueva_fila = [
+            username,
+            hash_password(password),
+            datetime.now().isoformat()
+        ]
         
-        # Agregar al sheet
-        if df_usuarios.empty:
-            df_actualizado = nuevo_usuario
-        else:
-            df_actualizado = pd.concat([df_usuarios, nuevo_usuario], ignore_index=True)
-        
-        conn.update(worksheet="usuarios", data=df_actualizado)
+        worksheet.append_row(nueva_fila)
         return True, "Usuario registrado exitosamente"
         
     except Exception as e:
@@ -72,23 +94,25 @@ def registrar_usuario(username, password):
 
 def verificar_login(username, password):
     """Verifica las credenciales de login"""
-    conn = get_gsheets_connection()
-    if not conn:
-        return False
-    
     try:
-        df_usuarios = conn.read(worksheet="usuarios", usecols=[0, 1, 2])
-        
-        if df_usuarios.empty:
+        spreadsheet = get_gsheets_connection()
+        if not spreadsheet:
             return False
         
-        usuario = df_usuarios[df_usuarios['username'] == username]
+        worksheet = spreadsheet.worksheet("usuarios")
         
-        if usuario.empty:
+        try:
+            registros = worksheet.get_all_records()
+        except:
             return False
         
         password_hash = hash_password(password)
-        return usuario.iloc[0]['password'] == password_hash
+        
+        for registro in registros:
+            if registro.get('username') == username and registro.get('password') == password_hash:
+                return True
+        
+        return False
         
     except Exception as e:
         st.error(f"Error al verificar login: {str(e)}")
@@ -96,15 +120,19 @@ def verificar_login(username, password):
 
 def obtener_usuarios():
     """Obtiene la lista de usuarios registrados"""
-    conn = get_gsheets_connection()
-    if not conn:
-        return []
-    
     try:
-        df_usuarios = conn.read(worksheet="usuarios", usecols=[0])
-        if df_usuarios.empty:
+        spreadsheet = get_gsheets_connection()
+        if not spreadsheet:
             return []
-        return df_usuarios['username'].tolist()
+        
+        worksheet = spreadsheet.worksheet("usuarios")
+        
+        try:
+            registros = worksheet.get_all_records()
+            return [r.get('username') for r in registros if r.get('username')]
+        except:
+            return []
+            
     except Exception as e:
         st.error(f"Error al obtener usuarios: {str(e)}")
         return []
@@ -116,29 +144,21 @@ def crear_sala_id(usuario1, usuario2):
 
 def enviar_mensaje_chat(sala_id, username, mensaje):
     """Envía un mensaje al chat"""
-    conn = get_gsheets_connection()
-    if not conn:
-        return False
-    
     try:
-        # Leer mensajes existentes
-        df_mensajes = conn.read(worksheet="mensajes", usecols=[0, 1, 2, 3])
+        spreadsheet = get_gsheets_connection()
+        if not spreadsheet:
+            return False
         
-        # Crear nuevo mensaje
-        nuevo_mensaje = pd.DataFrame([{
-            'sala_id': sala_id,
-            'username': username,
-            'mensaje': mensaje,
-            'timestamp': datetime.now().isoformat()
-        }])
+        worksheet = spreadsheet.worksheet("mensajes")
         
-        # Agregar al sheet
-        if df_mensajes.empty:
-            df_actualizado = nuevo_mensaje
-        else:
-            df_actualizado = pd.concat([df_mensajes, nuevo_mensaje], ignore_index=True)
+        nueva_fila = [
+            sala_id,
+            username,
+            mensaje,
+            datetime.now().isoformat()
+        ]
         
-        conn.update(worksheet="mensajes", data=df_actualizado)
+        worksheet.append_row(nueva_fila)
         return True
         
     except Exception as e:
@@ -147,25 +167,21 @@ def enviar_mensaje_chat(sala_id, username, mensaje):
 
 def obtener_mensajes_chat(sala_id):
     """Obtiene los mensajes de una sala de chat"""
-    conn = get_gsheets_connection()
-    if not conn:
-        return []
-    
     try:
-        df_mensajes = conn.read(worksheet="mensajes", usecols=[0, 1, 2, 3])
-        
-        if df_mensajes.empty:
+        spreadsheet = get_gsheets_connection()
+        if not spreadsheet:
             return []
         
-        # Filtrar por sala_id
-        mensajes_sala = df_mensajes[df_mensajes['sala_id'] == sala_id]
+        worksheet = spreadsheet.worksheet("mensajes")
         
-        if mensajes_sala.empty:
+        try:
+            registros = worksheet.get_all_records()
+        except:
             return []
         
-        # Convertir a lista de diccionarios y ordenar por timestamp
-        mensajes = mensajes_sala.to_dict('records')
-        mensajes.sort(key=lambda x: x['timestamp'])
+        # Filtrar por sala_id y ordenar por timestamp
+        mensajes = [r for r in registros if r.get('sala_id') == sala_id]
+        mensajes.sort(key=lambda x: x.get('timestamp', ''))
         
         return mensajes
         
@@ -1384,17 +1400,22 @@ def mostrar_chat_social(cliente, modelo):
         else:
             for msg in mensajes:
                 es_propio = msg['username'] == st.session_state.usuario_logueado
-                timestamp = datetime.fromisoformat(msg['timestamp']).strftime("%H:%M")
+                try:
+                    timestamp = datetime.fromisoformat(msg['timestamp']).strftime("%H:%M")
+                except:
+                    timestamp = ""
                 
                 if es_propio:
                     with st.chat_message("user", avatar="😊"):
                         st.markdown(msg['mensaje'])
-                        st.caption(timestamp)
+                        if timestamp:
+                            st.caption(timestamp)
                 else:
                     with st.chat_message("assistant", avatar="👤"):
                         st.markdown(f"**{msg['username']}**")
                         st.markdown(msg['mensaje'])
-                        st.caption(timestamp)
+                        if timestamp:
+                            st.caption(timestamp)
         
         # Input para nuevo mensaje
         mensaje_nuevo = st.chat_input("Escribe tu mensaje...")
