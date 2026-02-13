@@ -23,6 +23,7 @@ def cargar_logo_base64(path):
 # ==================== LOGOS ====================
 logo_fijo_base64 = cargar_logo_base64("logomangi.png")
 logo_definitivo_base64 = cargar_logo_base64("logodefinitivo2.png")
+flecha_base64 = cargar_logo_base64("flecha.mangi.png")
 
 # ==================== ESTILOS CSS ====================
 st.markdown(
@@ -200,6 +201,30 @@ st.markdown(
     @keyframes breathing {{
         0%, 100% {{ transform: scale(1); opacity: 0.95; }}
         50% {{ transform: scale(1.05); opacity: 1; }}
+    }}
+
+    /* -------- BOTÓN FLECHA VOLVER (PROCOLAB) -------- */
+    .boton-flecha-volver {{
+        position: relative;
+        display: inline-block;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }}
+
+    .boton-flecha-volver img {{
+        width: 50px;
+        height: 50px;
+        filter: drop-shadow(0 4px 8px rgba(34, 197, 94, 0.3));
+        transition: all 0.3s ease;
+    }}
+
+    .boton-flecha-volver:hover img {{
+        transform: translateX(-5px) scale(1.1);
+        filter: drop-shadow(0 6px 12px rgba(34, 197, 94, 0.5));
+    }}
+
+    .boton-flecha-volver:active img {{
+        transform: translateX(-3px) scale(1.05);
     }}
 
     /* -------- ANIMACIONES -------- */
@@ -765,9 +790,9 @@ Gap: $50,000 adicionales por mes
 
 💰 DESGLOSE REALISTA:
 Para llegar ahí necesitás:
-• +$1,667 por día
-• O +12 ventas/día (si tu ticket es $140)
-• O +83 ventas/semana
+- +$1,667 por día
+- O +12 ventas/día (si tu ticket es $140)
+- O +83 ventas/semana
 
 🎯 RUTAS POSIBLES:
 Camino A: Más clientes (mismo ticket)
@@ -1023,12 +1048,25 @@ def mostrar_procolab(cliente, modelo):
         </div>
     """, unsafe_allow_html=True)
     
-    # Botón para salir
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col3:
-        if st.button("← Volver", use_container_width=True):
-            st.session_state.modo_procolab = False
-            st.rerun()
+    # Botón flecha para volver (personalizado)
+    st.markdown(f"""
+        <div style="margin: 20px 0; display: flex; justify-content: flex-start;">
+            <a href="#" class="boton-flecha-volver" id="btn-volver-procolab">
+                <img src="data:image/png;base64,{flecha_base64}" alt="Volver">
+            </a>
+        </div>
+        <script>
+            document.getElementById('btn-volver-procolab').addEventListener('click', function(e) {{
+                e.preventDefault();
+                window.parent.postMessage({{type: 'streamlit:setComponentValue', value: 'volver'}}, '*');
+            }});
+        </script>
+    """, unsafe_allow_html=True)
+    
+    # Escuchar evento de clic en la flecha
+    if st.button("", key="volver_hidden", help="Volver"):
+        st.session_state.modo_procolab = False
+        st.rerun()
     
     st.markdown("---")
     
@@ -1041,11 +1079,11 @@ Soy una IA experta en consultoría empresarial, y estoy acá para ayudarte a tra
 🎯 **¿En qué te puedo ayudar hoy?**
 
 Algunos ejemplos:
-• "Mis ventas están bajando y no sé por qué"
-• "Quiero duplicar mi facturación en 6 meses"
-• "No entiendo si mi negocio es rentable"
-• "Quiero lanzar un nuevo producto"
-• "Necesito reducir costos sin afectar calidad"
+- "Mis ventas están bajando y no sé por qué"
+- "Quiero duplicar mi facturación en 6 meses"
+- "No entiendo si mi negocio es rentable"
+- "Quiero lanzar un nuevo producto"
+- "Necesito reducir costos sin afectar calidad"
 
 💬 **Contame sobre tu negocio y arrancamos...**
 """
