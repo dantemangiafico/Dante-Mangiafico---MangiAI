@@ -10,7 +10,7 @@ import json
 # ==================== CONFIGURACIÓN ====================
 st.set_page_config(
     page_title="MangiAI",
-    page_icon="🤖",
+    page_icon="logodefinitivo2.png",
     layout="centered"
 )
 
@@ -201,30 +201,6 @@ st.markdown(
     @keyframes breathing {{
         0%, 100% {{ transform: scale(1); opacity: 0.95; }}
         50% {{ transform: scale(1.05); opacity: 1; }}
-    }}
-
-    /* -------- BOTÓN FLECHA VOLVER (PROCOLAB) -------- */
-    .boton-flecha-volver {{
-        position: relative;
-        display: inline-block;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }}
-
-    .boton-flecha-volver img {{
-        width: 50px;
-        height: 50px;
-        filter: drop-shadow(0 4px 8px rgba(34, 197, 94, 0.3));
-        transition: all 0.3s ease;
-    }}
-
-    .boton-flecha-volver:hover img {{
-        transform: translateX(-5px) scale(1.1);
-        filter: drop-shadow(0 6px 12px rgba(34, 197, 94, 0.5));
-    }}
-
-    .boton-flecha-volver:active img {{
-        transform: translateX(-3px) scale(1.05);
     }}
 
     /* -------- ANIMACIONES -------- */
@@ -1048,25 +1024,20 @@ def mostrar_procolab(cliente, modelo):
         </div>
     """, unsafe_allow_html=True)
     
-    # Botón flecha para volver (personalizado)
-    st.markdown(f"""
-        <div style="margin: 20px 0; display: flex; justify-content: flex-start;">
-            <a href="#" class="boton-flecha-volver" id="btn-volver-procolab">
-                <img src="data:image/png;base64,{flecha_base64}" alt="Volver">
-            </a>
-        </div>
-        <script>
-            document.getElementById('btn-volver-procolab').addEventListener('click', function(e) {{
-                e.preventDefault();
-                window.parent.postMessage({{type: 'streamlit:setComponentValue', value: 'volver'}}, '*');
-            }});
-        </script>
-    """, unsafe_allow_html=True)
-    
-    # Escuchar evento de clic en la flecha
-    if st.button("", key="volver_hidden", help="Volver"):
-        st.session_state.modo_procolab = False
-        st.rerun()
+    # Botón flecha para volver
+    col1, col2, col3 = st.columns([1, 6, 1])
+    with col1:
+        st.markdown(f"""
+            <div style="padding: 5px 0;">
+                <img src="data:image/png;base64,{flecha_base64}" 
+                     style="width: 45px; cursor: pointer;
+                            filter: drop-shadow(0 4px 8px rgba(34, 197, 94, 0.3));
+                            transition: all 0.3s ease;">
+            </div>
+        """, unsafe_allow_html=True)
+        if st.button(".", key="volver_btn", label_visibility="collapsed"):
+            st.session_state.modo_procolab = False
+            st.rerun()
     
     st.markdown("---")
     
